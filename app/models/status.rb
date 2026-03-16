@@ -167,6 +167,8 @@ class Status < ApplicationRecord
   before_validation :set_reblog
   before_validation :set_conversation
   before_validation :set_local
+  # --- 카모마일 에디션: 주사위 롤링 기능 ---
+  before_validation :process_dice_rolls, if: -> { local? && text_changed? }
 
   around_create Mastodon::Snowflake::Callbacks
 
@@ -416,9 +418,31 @@ class Status < ApplicationRecord
 
   private
 
+private
+
+  # --- 카모마일 에디션: 주사위 굴리기 로직 ---
+  def process_dice_rolls
+    return unless Setting.chamomile_dice_enabled
+    return if text.blank?
+
+    self.text = text.gsub("\u200B", "")
+
+    self.text = text.gsub(/\[\[(\d+)[dD](\d+)\]\]/) do |match|
+      n = $1.to_i
+      m = $2.to_i
+
+      if n > 0 && n <= 100 && m > 1 && m <= 1000
+        total = n.times.sum { rand(1..m) }
+        "\u200B[#{n}D#{m}=#{total}]\u200B"
+      else
+        match
+      end
+    end
+  end
+  # --- 카모마일 에디션 로직 끝 ---
+
   def update_status_stat!(attrs)
     return if marked_for_destruction? || destroyed?
-
     status_stat.update(attrs)
   end
 
@@ -441,12 +465,11 @@ class Status < ApplicationRecord
 
   def set_conversation
     self.thread = thread.reblog if thread&.reblog?
-
     self.reply = !(in_reply_to_id.nil? && thread.nil?) unless reply
 
     if reply? && !thread.nil?
       self.in_reply_to_account_id = carried_over_reply_to_account_id
-      self.conversation_id        = thread.conversation_id if conversation_id.nil?
+      self.conversation_id         = thread.conversation_id if conversation_id.nil?
     elsif conversation_id.nil?
       build_conversation
     end
@@ -454,7 +477,6 @@ class Status < ApplicationRecord
 
   def update_conversation
     return if reply?
-
     conversation.update!(parent_status: self, parent_account: account) if conversation && conversation.parent_status.nil?
   end
 
@@ -472,7 +494,6 @@ class Status < ApplicationRecord
 
   def update_statistics
     return unless distributable?
-
     ActivityTracker.increment('activity:statuses:local')
   end
 
@@ -485,11 +506,10 @@ class Status < ApplicationRecord
   end
 
   def decrement_counter_caches
-    return if direct_visibility? || new_record?
-
-    account&.decrement_count!(:statuses_count)
-    reblog&.decrement_count!(:reblogs_count) if reblog?
-    thread&.decrement_count!(:replies_count) if in_reply_to_id.present? && distributable?
+    return if new_record?
+    account&.decrement_count!(:statuses_count) unless direct_visibility?
+    reblog&.decrement_count!(:reblogs_count) if reblog? && !direct_visibility?
+    thread&.decrement_count!(:replies_count) if in_reply_to_id.present?
   end
 
   def trigger_create_webhooks
@@ -499,4 +519,4 @@ class Status < ApplicationRecord
   def trigger_update_webhooks
     TriggerWebhookWorker.perform_async('status.updated', 'Status', id) if local?
   end
-end
+end # <-- 이 end가 class Status를 닫아주는 아주 중요한 친구입니다!

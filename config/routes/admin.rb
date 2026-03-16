@@ -68,6 +68,7 @@ namespace :admin do
     resource :about, only: [:show, :update], controller: 'about'
     resource :appearance, only: [:show, :update], controller: 'appearance'
     resource :discovery, only: [:show, :update], controller: 'discovery'
+    resource :chamomile, only: [:show, :update], controller: 'chamomile' # 카모마일 에디션 전용 탭 라우팅
   end
 
   resources :site_uploads, only: [:destroy]

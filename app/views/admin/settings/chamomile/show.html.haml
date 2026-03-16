@@ -1,0 +1,30 @@
+- content_for :page_title do
+  = t('admin.settings.chamomile.title')
+
+- content_for :heading do
+  %h2= t('admin.settings.title')
+  = render partial: 'admin/settings/shared/links'
+
+= simple_form_for @admin_settings, url: admin_settings_chamomile_path, html: { method: :patch } do |f|
+  = render 'shared/error_messages', object: @admin_settings
+
+  %p.lead= t('admin.settings.chamomile.preamble')
+
+  %h4 편의 기능
+
+  .fields-group
+    = f.input :chamomile_dice_enabled,
+              as: :boolean,
+              wrapper: :with_label,
+              label: '주사위 기능 활성화 ([[1d100]] 명령어 사용)'
+
+  %h4 관리 및 보안
+
+  .fields-group
+    = f.input :chamomile_dm_admin_only,
+              as: :boolean,
+              wrapper: :with_label,
+              label: '관리자 미포함 DM 차단 (관리자가 1명 이상 태그되어야 DM 발송 가능)'
+
+  .actions
+    = f.button :button, t('generic.save_changes'), type: :submit

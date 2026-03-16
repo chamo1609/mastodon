@@ -91,8 +91,13 @@ class Api::BaseController < ApplicationController
     doorkeeper_authorize!(*scopes) if doorkeeper_token
   end
 
+  # def disallow_unauthenticated_api_access?
+  #   ENV['DISALLOW_UNAUTHENTICATED_API_ACCESS'] == 'true' || Rails.configuration.x.mastodon.limited_federation_mode
+  # end
+
+  # 카모마일 에디션: 비로그인 전면 차단
   def disallow_unauthenticated_api_access?
-    ENV['DISALLOW_UNAUTHENTICATED_API_ACCESS'] == 'true' || Rails.configuration.x.mastodon.limited_federation_mode
+    true
   end
 
   private

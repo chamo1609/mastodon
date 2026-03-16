@@ -25,6 +25,8 @@ class Form::AdminSettings
     mascot
     trends
     trendable_by_default
+    chamomile_dice_enabled
+    chamomile_dm_admin_only
     show_domain_blocks
     show_domain_blocks_rationale
     allow_referrer_origin
@@ -63,6 +65,8 @@ class Form::AdminSettings
     profile_directory
     trends
     trendable_by_default
+    chamomile_dice_enabled
+    chamomile_dm_admin_only
     noindex
     require_invite_text
     captcha_enabled

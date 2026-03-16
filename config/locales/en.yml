@@ -1914,6 +1914,9 @@ en:
     appearance: Appearance
     authorized_apps: Authorized apps
     back: Back to Mastodon
+    chamomile:
+      title: Chamomile Settings
+      preamble: Manage special community-specific settings for the Chamomile Edition.
     delete: Account deletion
     development: Development
     edit_profile: Edit profile

@@ -77,7 +77,30 @@ class PostStatusService < BaseService
 
   def process_status!
     @status = @account.statuses.new(status_attributes)
+def process_status!
+    @status = @account.statuses.new(status_attributes)
+    
+    # 4.6 최신 코어의 멘션 처리 방식 수용
     process_mentions_service.call(@status)
+    
+    # === 카모마일 에디션: 관리자 미포함 DM 차단 검증 ===
+    safeguard_chamomile_admin_dm!(@status)
+    # === 여기까지 ===
+
+    safeguard_mentions!(@status)
+    safeguard_private_mention_quote!(@status)
+    attach_tagged_objects!(@status)
+    attach_quote!(@status)
+
+    antispam = Antispam.new(@status)
+    antispam.local_preflight_check!
+
+    # The following transaction block is needed to wrap the UPDATEs to
+    # the media attachments when the status is created
+    ApplicationRecord.transaction do
+      @status.save!
+    end
+  end
     safeguard_mentions!(@status)
     safeguard_private_mention_quote!(@status)
     attach_tagged_objects!(@status)
@@ -126,6 +149,34 @@ class PostStatusService < BaseService
 
     raise UnexpectedMentionsError.new('Post would be sent to unexpected accounts', unexpected_accounts)
   end
+# === 카모마일 에디션: 관리자 미포함 DM 차단 로직 ===
+  def safeguard_chamomile_admin_dm!(status)
+    # 1. 관리자 설정에서 이 기능이 켜져 있는지 확인
+    return unless Setting.chamomile_dm_admin_only
+    
+    # 2. 작성하려는 게시물의 공개 범위가 '다이렉트(direct, DM)'인지 확인
+    return unless status.visibility.to_sym == :direct
+
+    # 허용할 관리자 역할 이름들의 목록 (서버 상황에 맞게 단어를 추가/수정하실 수 있습니다)
+    admin_roles = ['Admin', 'Owner', 'moderator', '관리자', '총괄', '스탭']
+
+    # 3. 작성자 본인이 이미 관리자급 권한을 가지고 있다면 검사 패스
+    return if admin_roles.include?(@account.user&.role&.name)
+
+    # 4. 태그된(멘션된) 계정들 중에 관리자급 역할을 가진 유저가 1명이라도 있는지 검사
+    admin_mentioned = status.mentions.any? do |mention|
+      mentioned_account = mention.account
+      # 로컬 계정이고, 연결된 유저 정보가 있으며, 그 유저의 역할 이름이 admin_roles 배열 안에 있는가?
+      mentioned_account.local? && admin_roles.include?(mentioned_account.user&.role&.name)
+    end
+
+    # 5. 차단
+    unless admin_mentioned
+      status.errors.add(:base, 'DM 발송 시 총괄 계정을 반드시 태그해야 합니다.')
+      raise ActiveRecord::RecordInvalid, status
+    end
+  end
+  # === 여기까지 ===
 
   def schedule_status!
     status_for_validation = @account.statuses.build(status_attributes)

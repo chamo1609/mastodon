@@ -33,11 +33,28 @@ class ApplicationController < ActionController::Base
 
   skip_before_action :verify_authenticity_token, only: :raise_not_found
 
+  before_action :require_chamomile_authentication!    # 카모마일 에디션: 비로그인 전면 차단
+
   def raise_not_found
     raise ActionController::RoutingError, "No route matches #{params[:unmatched_route]}"
   end
 
   private
+
+  # --- 카모마일 에디션: 접근 제어 커스텀 로직 ---
+  def require_chamomile_authentication!
+    # 1. 이미 로그인한 사용자면 정상적으로 통과
+    return if user_signed_in?
+
+    # 2. 로그인 창, 회원가입 창, 비밀번호 찾기 등 인증 관련 페이지는 통과 허용
+    return if devise_controller?
+
+    # 3. 모바일 앱 로그인 연동(OAuth) 및 필수 서버 정보 제공 API는 통과 허용
+    return if request.path.start_with?('/oauth', '/api/v1/apps', '/api/v1/instance')
+
+    # 4. 그 외의 모든 페이지(프로필, 타임라인, 게시판 등)는 무조건 로그인 페이지로 강제 이동
+    redirect_to new_user_session_path
+  end
 
   def public_fetch_mode?
     !authorized_fetch_mode?

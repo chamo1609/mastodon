@@ -35,6 +35,10 @@ defaults: &defaults
   landing_page: 'trends'
   wrapstodon: true
 
+  # --- Chamomile Edition Settings ---
+  chamomile_dice_enabled:
+    default: true
+
 development:
   <<: *defaults
 

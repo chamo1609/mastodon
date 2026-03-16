@@ -13,7 +13,11 @@ services:
     volumes:
       - ./postgres14:/var/lib/postgresql/data
     environment:
-      - 'POSTGRES_HOST_AUTH_METHOD=trust'
+      # 아래 세 줄을 추가하여 mastodon 계정으로 초기화되게 만듭니다.
+      - POSTGRES_USER=mastodon
+      - POSTGRES_PASSWORD=mastodon
+      - POSTGRES_DB=mastodon_production
+      - POSTGRES_HOST_AUTH_METHOD=trust
 
   redis:
     restart: always
@@ -24,6 +28,26 @@ services:
       test: ['CMD', 'redis-cli', 'ping']
     volumes:
       - ./redis:/data
+  es:
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
+    container_name: mastodon-es-1
+    profiles:
+      - search # up.sh에서 호출할 때만 이 건물이 지어집니다.
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # 램 사용량을 512MB로 제한합니다.
+      - "cluster.name=es-mastodon"
+      - "discovery.type=single-node"
+      - "bootstrap.memory_lock=true"
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - ./elasticsearch:/usr/share/elasticsearch/data # 검색 데이터를 저장할 폴더입니다.
+    networks:
+      - external_network
+      - internal_network
 
   # es:
   #   restart: always
@@ -58,8 +82,8 @@ services:
 
   web:
     # You can uncomment the following line if you want to not use the prebuilt image, for example if you have local code changes
-    # build: .
-    image: ghcr.io/mastodon/mastodon:v4.5.7
+    build: .
+    # image: ghcr.io/mastodon/mastodon:v4.5.7
     restart: always
     env_file: .env.production
     command: bundle exec puma -C config/puma.rb
@@ -80,10 +104,10 @@ services:
 
   streaming:
     # You can uncomment the following lines if you want to not use the prebuilt image, for example if you have local code changes
-    # build:
+    build: .
     #   dockerfile: ./streaming/Dockerfile
     #   context: .
-    image: ghcr.io/mastodon/mastodon-streaming:v4.5.7
+    # image: ghcr.io/mastodon/mastodon-streaming:v4.5.7
     restart: always
     env_file: .env.production
     command: node ./streaming/index.js
@@ -101,8 +125,8 @@ services:
 
   sidekiq:
     # You can uncomment the following line if you want to not use the prebuilt image, for example if you have local code changes
-    # build: .
-    image: ghcr.io/mastodon/mastodon:v4.5.7
+    build: .
+    # image: ghcr.io/mastodon/mastodon:v4.5.7
     restart: always
     env_file: .env.production
     command: bundle exec sidekiq

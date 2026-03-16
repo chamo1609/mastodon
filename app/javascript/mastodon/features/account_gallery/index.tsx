@@ -1,11 +1,12 @@
 import { useEffect, useCallback } from 'react';
 
 import { FormattedMessage } from 'react-intl';
+import { useHistory } from 'react-router-dom';
 
+import type { Map as ImmutableMap } from 'immutable';
 import { List as ImmutableList, isList } from 'immutable';
 
 import { isServerFeatureEnabled } from '@/mastodon/utils/environment';
-import { openModal } from 'mastodon/actions/modal';
 import { expandAccountMediaTimeline } from 'mastodon/actions/timelines';
 import { ColumnBackButton } from 'mastodon/components/column_back_button';
 import { RemoteHint } from 'mastodon/components/remote_hint';
@@ -87,7 +88,9 @@ export const AccountGallery: React.FC<{
   multiColumn: boolean;
 }> = ({ multiColumn }) => {
   const dispatch = useAppDispatch();
+  const history = useHistory();
   const accountId = useAccountId();
+  
   const {
     isLoading = true,
     hasMore = false,
@@ -96,6 +99,11 @@ export const AccountGallery: React.FC<{
   } = useAppSelector((state) => selectGalleryTimeline(state, accountId)) ?? {};
 
   const { suspended, blockedBy, hidden } = useAccountVisibility(accountId);
+
+  // Redux 스토어에서 현재 갤러리 주인의 계정 객체를 올바르게 가져옵니다 (acct 파싱용)
+  const account = useAppSelector((state) =>
+    accountId ? state.accounts.get(accountId) : undefined
+  ) as ImmutableMap<string, unknown> | undefined;
 
   const maxId = attachments.last()?.getIn(['status', 'id']) as
     | string
@@ -117,51 +125,27 @@ export const AccountGallery: React.FC<{
 
   const handleOpenMedia = useCallback(
     (attachment: MediaAttachment) => {
-      const statusId = attachment.getIn(['status', 'id']);
-      const lang = attachment.getIn(['status', 'language']);
+      const status = attachment.get('status') as ImmutableMap<string, unknown> | undefined;
+      
+      if (status) {
+        const statusId = status.get('id') as string;
+        // 컴포넌트 레벨에서 가져온 account 객체를 사용해 안전하게 acct를 추출합니다.
+        const acct = account?.get('acct') as string | undefined;
 
-      if (attachment.get('type') === 'video') {
-        dispatch(
-          openModal({
-            modalType: 'VIDEO',
-            modalProps: {
-              media: attachment,
-              statusId,
-              lang,
-              options: { autoPlay: true },
-            },
-          }),
-        );
-      } else if (attachment.get('type') === 'audio') {
-        dispatch(
-          openModal({
-            modalType: 'AUDIO',
-            modalProps: {
-              media: attachment,
-              statusId,
-              lang,
-              options: { autoPlay: true },
-            },
-          }),
-        );
-      } else {
-        const media = attachment.getIn([
-          'status',
-          'media_attachments',
-        ]) as ImmutableList<MediaAttachment>;
-        const index = media.findIndex(
-          (x) => x.get('id') === attachment.get('id'),
-        );
-
-        dispatch(
-          openModal({
-            modalType: 'MEDIA',
-            modalProps: { media, index, statusId, lang },
-          }),
-        );
+        if (acct && statusId) {
+          // 마스토돈의 로컬 타래 주소 규칙: /@아이디/게시글번호
+          const localPath = `/@${acct}/${statusId}`;
+          history.push(localPath);
+        } else {
+           // 만약 정보가 모자라면 기존 방식(url 파싱)을 보조로 사용 (안전망)
+           const statusUrl = status.get('url') as string;
+           if(statusUrl) {
+             history.push(new URL(statusUrl).pathname);
+           }
+        }
       }
     },
-    [dispatch],
+    [history, account], // 이제 바깥에서 선언된 account 객체를 참조하므로 문법적으로 완벽합니다.
   );
 
   if (accountId === null) {
