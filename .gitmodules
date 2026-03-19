@@ -1,0 +1,3 @@
+[submodule "app/javascript/styles/bird-ui-upstream"]
+	path = app/javascript/styles/bird-ui-upstream
+	url = https://github.com/chamo1609/mastodon-bird-ui.git
