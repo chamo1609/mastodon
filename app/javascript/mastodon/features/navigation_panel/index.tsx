@@ -270,7 +270,8 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
             />
           </>
         )}
-
+ 
+        {/*탐색하기 숨기기
         {trendsEnabled && (
           <ColumnLink
             transparent
@@ -279,8 +280,9 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
             iconComponent={TrendingUpIcon}
             text={intl.formatMessage(messages.explore)}
           />
-        )}
+        )} */}
 
+        {/* livefeed 숨김
         {(canViewFeed(signedIn, permissions, localLiveFeedAccess) ||
           canViewFeed(signedIn, permissions, remoteLiveFeedAccess)) && (
           <ColumnLink
@@ -300,11 +302,23 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
                 : messages.firehose_singular,
             )}
           />
-        )}
+        )} */}
 
         {signedIn && (
           <>
+            <FollowedTagsPanel />
+
+            <hr />
+
             <NotificationsLink />
+
+            <ColumnLink
+              transparent
+              to='/conversations'
+              icon='at'
+              iconComponent={AlternateEmailIcon}
+              text={intl.formatMessage(messages.direct)}
+            /> 
 
             <FollowRequestsLink />
 
@@ -313,8 +327,6 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
             <hr />
 
             <ListPanel />
-
-            <FollowedTagsPanel />
 
             <ColumnLink
               transparent
@@ -342,13 +354,6 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
                 text={intl.formatMessage(messages.collections)}
               />
             )}
-            <ColumnLink
-              transparent
-              to='/conversations'
-              icon='at'
-              iconComponent={AlternateEmailIcon}
-              text={intl.formatMessage(messages.direct)}
-            />
 
             <hr />
 
@@ -385,7 +390,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
 
       <div className='flex-spacer' />
 
-      <Trends />
+      {/* <Trends /> */}
     </div>
   );
 };

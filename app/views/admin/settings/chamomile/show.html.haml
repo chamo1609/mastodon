@@ -17,6 +17,11 @@
               as: :boolean,
               wrapper: :with_label,
               label: '주사위 기능 활성화 ([[1d100]] 명령어 사용)'
+  .fields-group
+    = f.input :chamomile_markdown_enabled,
+              as: :boolean,
+              wrapper: :with_label,
+              label: '마크다운 문법 활성화'
 
   %h4 관리 및 보안
 
@@ -25,6 +30,25 @@
               as: :boolean,
               wrapper: :with_label,
               label: '관리자 미포함 DM 차단 (관리자가 1명 이상 태그되어야 DM 발송 가능)'
+  .fields-group
+    %h4 커스텀 게시판 설정
+    %p.hint 게시판 이름과 연결될 해시태그(링크)를 짝지어 입력하세요..
+
+    - boards = @admin_settings.chamomile_boards || []
+    
+    %table{ style: 'margin-top: 15px;' }
+      %tbody
+        - 10.times do |i|
+          - board = boards[i] || {}
+          %tr
+            %td
+              / board['name'] (문자열)과 board[:name] (기호) 모두 대응하도록 처리
+              = text_field_tag 'form_admin_settings[chamomile_boards][][name]', board['name'] || board[:name], placeholder: '이름', style: 'width: 140px !important; display: block !important;'
+            %td{ width: '20' }
+            %td
+              = text_field_tag 'form_admin_settings[chamomile_boards][][tag]', board['tag'] || board[:tag], placeholder: '해시태그', style: 'width: 140px !important; display: block !important;'
+          %tr
+            %td{ height: '10', colspan: '3' }
 
   .actions
     = f.button :button, t('generic.save_changes'), type: :submit

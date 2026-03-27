@@ -192,7 +192,22 @@ export function directCompose(account) {
 
 export function submitCompose(successCallback) {
   return function (dispatch, getState) {
-    const status   = getState().getIn(['compose', 'text'], '');
+    // 1. 본문을 담는 변수(status)를 수정할 수 있도록 const 대신 let으로 선언합니다.
+    let status   = getState().getIn(['compose', 'text'], '');
+
+    // --- 카모마일 에디션 게시판 해시태그 자동 첨부 로직 시작 ---
+    const activeBoardTag = sessionStorage.getItem('chamomile_board');
+    if (activeBoardTag) {
+      const boards = getState().getIn(['meta', 'chamomile_boards']);
+      const boardsJS = boards && boards.toJS ? boards.toJS() : (boards || []);
+      const isBoard = boardsJS.some(b => b.tag === activeBoardTag);
+
+      if (isBoard && !status.includes(`#${activeBoardTag}`)) {
+        // 내용이 있을 때는 줄바꿈 후 태그를 붙이고, 내용이 없으면 태그만 입력합니다.
+        status = status.trim().length > 0 ? `${status}\n\n#${activeBoardTag}` : `#${activeBoardTag}`;
+      }
+    }
+    // --- 카모마일 로직 끝 ---
     const media    = getState().getIn(['compose', 'media_attachments']);
     const statusId = getState().getIn(['compose', 'id'], null);
     const hasQuote = !!getState().getIn(['compose', 'quoted_status_id']);

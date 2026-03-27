@@ -1,4 +1,6 @@
-import { useCallback, useState } from 'react';
+// import { useCallback, useState } from 'react';
+import { useCallback, useState, useRef, useEffect } from 'react';
+import { useSelector } from 'react-redux';
 
 import { FormattedMessage, defineMessages, useIntl } from 'react-intl';
 
@@ -20,6 +22,7 @@ import { useColumnIndexContext } from '../features/ui/components/columns_area';
 import { getColumnSkipLinkId } from '../features/ui/components/skip_links';
 
 import { useAppHistory } from './router';
+
 
 export const messages = defineMessages({
   show: { id: 'column_header.show_settings', defaultMessage: 'Show settings' },
@@ -112,8 +115,58 @@ export const ColumnHeader: React.FC<Props> = ({
   const intl = useIntl();
   const { signedIn } = useIdentity();
   const history = useAppHistory();
+  // --- 카모마일 에디션 현재 게시판 위치 추적 및 모바일 전환 방어 로직 ---
+  useEffect(() => {
+    const updateBoardContext = (path: string) => {
+      if (path.startsWith('/tags/')) {
+        // 게시판(해시태그) 진입 시 위치 기억
+        const tag = path.split('/')[2];
+        
+        // tag가 undefined가 아니고 실제 값이 있을 때만 저장소에 기록합니다.
+        if (tag) {
+          sessionStorage.setItem('chamomile_board', tag);
+        }
+      } else if (!path.startsWith('/publish') && !path.startsWith('/statuses/new')) {
+        // 툿 작성 화면(/publish 등)으로 가는 게 아니라면 위치 정보 초기화
+        sessionStorage.removeItem('chamomile_board');
+      }
+    };
+
+    // 처음 렌더링될 때 주소 확인
+    updateBoardContext(history.location.pathname);
+
+    // 주소가 바뀔 때마다 감시
+    const unlisten = history.listen((location) => {
+      updateBoardContext(location.pathname);
+    });
+
+    return () => unlisten();
+  }, [history]);
+  // -------------------------------------------------------------
   const [collapsed, setCollapsed] = useState(true);
   const [animating, setAnimating] = useState(false);
+
+  const boards = useSelector((state: any) => state.getIn(['meta', 'chamomile_boards']));
+  const boardItems = (boards?.toJS ? boards.toJS() : boards || []).map((b: any) => ({
+    text: b.name,
+    action: () => history.push(`/tags/${b.tag}`),
+  }));
+
+  // --- 카모마일 에디션 게시판 추가: 커스텀 드롭다운 토글 및 바깥 클릭 감지 로직 ---
+  const [boardMenuOpen, setBoardMenuOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // 드롭다운 영역 바깥을 클릭하면 메뉴를 닫습니다.
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setBoardMenuOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  // -------------------------------------------------------------
 
   const handleToggleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -269,32 +322,97 @@ export const ColumnHeader: React.FC<Props> = ({
 
   const component = (
     <div className={wrapperClassName}>
-      <h1 className={buttonClassName}>
+      {/* h1 내부 여백을 없애고 flex 컨테이너로 만듭니다 */}
+      <h1 className={buttonClassName} style={{ padding: 0, display: 'flex' }}>
         {hasTitle && (
-          <>
+          <div style={{ display: 'flex', flex: 1, width: '100%', alignItems: 'stretch' }}>
             {backButton}
 
+            {/* 왼쪽 (50%): 기존 타이틀 (홈 등) */}
             <button
               onClick={handleTitleClick}
               className='column-header__title'
               type='button'
               id={getColumnSkipLinkId(columnIndex)}
+              style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRight: boardItems.length > 0 ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
             >
               {!backButton && hasIcon && (
                 <Icon
                   id={icon}
                   icon={iconComponent}
                   className='column-header__icon'
+                  style={{ marginRight: '8px' }}
                 />
               )}
               {title}
             </button>
-          </>
+
+            {/* 오른쪽 (50%): 카모마일 게시판 드롭다운 (커스텀 구현) */}
+            {boardItems.length > 0 && (
+              <div ref={dropdownRef} style={{ flex: 1, display: 'flex', position: 'relative' }}>
+                <button
+                  type='button'
+                  onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(!boardMenuOpen); }}
+                  style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', border: 'none', color: 'inherit', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+                >
+                  게시판
+                </button>
+
+                {/* 드롭다운 메뉴 본체 */}
+                {boardMenuOpen && (
+                  <div style={{ 
+                    position: 'absolute', 
+                    top: '100%', 
+                    left: 0, 
+                    width: '100%', 
+                    background: 'var(--color-bg-primary)', // 테마 기본 배경색
+                    border: '1px solid var(--color-border-primary)', // 테마 테두리
+                    borderRadius: '4px', 
+                    boxShadow: 'var(--dropdown-shadow)', // 테마 드롭다운 전용 그림자 적용!
+                    zIndex: 9999, 
+                    overflow: 'hidden', 
+                    marginTop: '4px' 
+                  }}>
+                    {boardItems.map((b: any, index: number) => (
+                      <button
+                        key={b.text}
+                        type="button"
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          setBoardMenuOpen(false); 
+                          b.action(); 
+                        }}
+                        style={{ 
+                          display: 'block', 
+                          width: '100%', 
+                          padding: '12px', 
+                          background: 'transparent', 
+                          border: 'none', 
+                          borderBottom: index === boardItems.length - 1 ? 'none' : '1px solid var(--color-border-primary)', // 마지막 줄은 선 제거
+                          color: 'var(--color-text-primary)', // 테마 글자색
+                          textAlign: 'center', 
+                          cursor: 'pointer', 
+                          fontSize: '14px',
+                          transition: 'background-color 0.1s ease-in-out' // 부드러운 호버 효과
+                        }}
+                        // 테마의 secondary 배경색으로 호버 효과 구현
+                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
+                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                      >
+                        {b.text}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         )}
 
         {!hasTitle && backButton}
 
-        <div className='column-header__buttons'>
+        {/* 기존의 추가 버튼과 접기 버튼 */}
+        <div className='column-header__buttons' style={{ position: 'absolute', right: '15px' }}>
           {extraButton}
           {collapseButton}
         </div>

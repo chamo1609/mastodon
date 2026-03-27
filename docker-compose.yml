@@ -1,6 +1,3 @@
-# This file is designed for production server deployment, not local development work
-# For a containerized local dev environment, see: https://github.com/mastodon/mastodon/blob/main/docs/DEVELOPMENT.md#docker
-
 services:
   db:
     restart: always
@@ -13,10 +10,9 @@ services:
     volumes:
       - ./postgres14:/var/lib/postgresql/data
     environment:
-      # 아래 세 줄을 추가하여 mastodon 계정으로 초기화되게 만듭니다.
       - POSTGRES_USER=mastodon
       - POSTGRES_PASSWORD=mastodon
-      - POSTGRES_DB=mastodon_production
+      - POSTGRES_DB=mastodon_production # 개발 모드에서도 일단 이 이름을 쓰거나, .env에 맞춰 수정하세요.
       - POSTGRES_HOST_AUTH_METHOD=trust
 
   redis:
@@ -28,135 +24,70 @@ services:
       test: ['CMD', 'redis-cli', 'ping']
     volumes:
       - ./redis:/data
-  es:
-    restart: always
-    image: docker.elastic.co/elasticsearch/elasticsearch-oss:7.10.2
-    container_name: mastodon-es-1
-    profiles:
-      - search # up.sh에서 호출할 때만 이 건물이 지어집니다.
-    environment:
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # 램 사용량을 512MB로 제한합니다.
-      - "cluster.name=es-mastodon"
-      - "discovery.type=single-node"
-      - "bootstrap.memory_lock=true"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-    volumes:
-      - ./elasticsearch:/usr/share/elasticsearch/data # 검색 데이터를 저장할 폴더입니다.
-    networks:
-      - external_network
-      - internal_network
 
-  # es:
-  #   restart: always
-  #   image: docker.elastic.co/elasticsearch/elasticsearch:7.17.29
-  #   environment:
-  #     - "ES_JAVA_OPTS=-Xms512m -Xmx512m -Des.enforce.bootstrap.checks=true"
-  #     - "xpack.license.self_generated.type=basic"
-  #     - "xpack.security.enabled=false"
-  #     - "xpack.watcher.enabled=false"
-  #     - "xpack.graph.enabled=false"
-  #     - "xpack.ml.enabled=false"
-  #     - "bootstrap.memory_lock=true"
-  #     - "cluster.name=es-mastodon"
-  #     - "discovery.type=single-node"
-  #     - "thread_pool.write.queue_size=1000"
-  #   networks:
-  #      - external_network
-  #      - internal_network
-  #   healthcheck:
-  #      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
-  #   volumes:
-  #      - ./elasticsearch:/usr/share/elasticsearch/data
-  #   ulimits:
-  #     memlock:
-  #       soft: -1
-  #       hard: -1
-  #     nofile:
-  #       soft: 65536
-  #       hard: 65536
-  #   ports:
-  #     - '127.0.0.1:9200:9200'
-
+  # 개발 모드용 통합 WEB 서비스
   web:
-    # You can uncomment the following line if you want to not use the prebuilt image, for example if you have local code changes
-    build: .
-    # image: ghcr.io/mastodon/mastodon:v4.5.7
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     restart: always
-    env_file: .env.production
-    command: bundle exec puma -C config/puma.rb
+    # .env.production 대신 아까 만든 .env 파일을 바라보게 합니다.
+    env_file: .env
+    environment:
+      - RAILS_ENV=development
+      - NODE_ENV=development
+    ports:
+      - '3000:3000'
+      - '3036:3036' # Vite 개발 서버용
+    volumes:
+      - .:/opt/mastodon # [핵심] 소스 코드 실시간 동기화
+      - ./public/system:/opt/mastodon/public/system
     networks:
       - external_network
       - internal_network
-    healthcheck:
-      # prettier-ignore
-      test: ['CMD-SHELL',"curl -s --noproxy localhost localhost:3000/health | grep -q 'OK' || exit 1"]
-    ports:
-      - '127.0.0.1:3000:3000'
     depends_on:
       - db
       - redis
-      # - es
-    volumes:
-      - ./public/system:/mastodon/public/system
+    command: bash -c "rm -f tmp/pids/server.pid && ./bin/dev"
+    healthcheck:
+      test: ['CMD-SHELL', "curl -s --noproxy localhost localhost:3000/health | grep -q 'OK' || exit 1"]
 
   streaming:
-    # You can uncomment the following lines if you want to not use the prebuilt image, for example if you have local code changes
-    build: .
-    #   dockerfile: ./streaming/Dockerfile
-    #   context: .
-    # image: ghcr.io/mastodon/mastodon-streaming:v4.5.7
+    build:
+      context: .
+      dockerfile: Dockerfile.dev # 빌드 시간 단축을 위해 개발용 파일 공유
     restart: always
-    env_file: .env.production
-    command: node ./streaming/index.js
+    env_file: .env
+    environment:
+      - NODE_ENV=development
+    volumes:
+      - .:/opt/mastodon
     networks:
       - external_network
       - internal_network
-    healthcheck:
-      # prettier-ignore
-      test: ['CMD-SHELL', "curl -s --noproxy localhost localhost:4000/api/v1/streaming/health | grep -q 'OK' || exit 1"]
-    ports:
-      - '127.0.0.1:4000:4000'
+    command: node ./streaming/index.js
     depends_on:
       - db
       - redis
 
   sidekiq:
-    # You can uncomment the following line if you want to not use the prebuilt image, for example if you have local code changes
-    build: .
-    # image: ghcr.io/mastodon/mastodon:v4.5.7
+    build:
+      context: .
+      dockerfile: Dockerfile.dev # 빌드 시간 단축을 위해 개발용 파일 공유
     restart: always
-    env_file: .env.production
+    env_file: .env
+    environment:
+      - RAILS_ENV=development
+    volumes:
+      - .:/opt/mastodon
+      - ./public/system:/opt/mastodon/public/system
+    networks:
+      - external_network
+      - internal_network
     command: bundle exec sidekiq
     depends_on:
       - db
       - redis
-    networks:
-      - external_network
-      - internal_network
-    volumes:
-      - ./public/system:/mastodon/public/system
-    healthcheck:
-      test: ['CMD-SHELL', "ps aux | grep '[s]idekiq\ 8' || false"]
-
-  ## Uncomment to enable federation with tor instances along with adding the following ENV variables
-  ## http_hidden_proxy=http://privoxy:8118
-  ## ALLOW_ACCESS_TO_HIDDEN_SERVICE=true
-  # tor:
-  #   image: sirboops/tor
-  #   networks:
-  #      - external_network
-  #      - internal_network
-  #
-  # privoxy:
-  #   image: sirboops/privoxy
-  #   volumes:
-  #     - ./priv-config:/opt/config
-  #   networks:
-  #     - external_network
-  #     - internal_network
 
 networks:
   external_network:

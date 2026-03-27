@@ -27,8 +27,11 @@ module Admin
     end
 
     def settings_params
-      params
-        .expect(form_admin_settings: [*Form::AdminSettings::KEYS])
+      safe_keys = Form::AdminSettings::KEYS - [:chamomile_boards]
+      params.expect(form_admin_settings: [
+        *safe_keys,
+        { chamomile_boards: [:name, :tag] }
+      ])
     end
   end
 end

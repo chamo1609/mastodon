@@ -1,0 +1,21 @@
+# 1. 개발 도구가 모두 포함된 풀 버전 루비 이미지 사용
+FROM ruby:3.3-bookworm
+
+# 2. 필수 패키지 및 libvips-dev 추가
+RUN curl -sL https://deb.nodesource.com/setup_20.x | bash - \
+    && apt-get update -qq \
+    && apt-get install -y \
+    nodejs build-essential libpq-dev libxml2-dev libxslt1-dev \
+    ffmpeg libicu-dev libidn11-dev libjemalloc-dev python3 \
+    shared-mime-info pkg-config libvips-dev \
+    && corepack enable
+
+WORKDIR /opt/mastodon
+
+# 3. 의존성 설치 파일만 먼저 복사
+COPY Gemfile Gemfile.lock package.json yarn.lock ./
+
+# 4. 의존성 설치
+RUN bundle config set --local without 'production' \
+    && bundle install \
+    && yarn install

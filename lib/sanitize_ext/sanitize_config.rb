@@ -104,7 +104,7 @@ class Sanitize
     end
 
     MASTODON_STRICT = freeze_config(
-      elements: %w(p br span a del s pre blockquote code b strong u i em ul ol li ruby rt rp),
+      elements: %w(p br span a del s pre blockquote code b strong u i em ul ol li ruby rt rp h1 h2 h3 h4 h5 h6),
 
       attributes: {
         'a' => %w(href rel class translate),

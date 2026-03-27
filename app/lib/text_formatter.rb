@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'commonmarker'
+
 class TextFormatter
   include ActionView::Helpers::TextHelper
   include ERB::Util
@@ -11,7 +13,7 @@ class TextFormatter
 
   DEFAULT_OPTIONS = {
     multiline: true,
-  }.freeze
+  }.freeze  
 
   attr_reader :text, :options
 
@@ -30,6 +32,25 @@ class TextFormatter
     @entities ||= Extractor.extract_entities_with_indices(text, extract_url_without_protocol: false)
   end
 
+  # def to_s
+  #   return add_quote_fallback('').html_safe if text.blank? # rubocop:disable Rails/OutputSafety
+
+  #   html = rewrite do |entity|
+  #     if entity[:url]
+  #       link_to_url(entity)
+  #     elsif entity[:hashtag]
+  #       link_to_hashtag(entity)
+  #     elsif entity[:screen_name]
+  #       link_to_mention(entity)
+  #     end
+  #   end
+
+  #   html = simple_format(html, {}, sanitize: false).delete("\n") if multiline?
+  #   html = add_quote_fallback(html) if options[:quoted_status].present?
+
+  #   html.html_safe # rubocop:disable Rails/OutputSafety
+  # end
+
   def to_s
     return add_quote_fallback('').html_safe if text.blank? # rubocop:disable Rails/OutputSafety
 
@@ -43,7 +64,40 @@ class TextFormatter
       end
     end
 
-    html = simple_format(html, {}, sanitize: false).delete("\n") if multiline?
+    # --- 카모마일 에디션: 관리자 설정에 따른 마크다운 처리 ---
+    if Setting.chamomile_markdown_enabled
+      require 'cgi'
+      html = CGI.unescapeHTML(html)
+
+      html = Commonmarker.to_html(html, options: {
+        render: { unsafe: true, hardbreaks: true },
+        extension: { strikethrough: true, tagfilter: true, autolink: false }
+      })
+      
+      html.gsub!(/<h([1-6])>(.*?)<\/h\1>/m, '<p class="markdown-h\1"><strong>\2</strong></p>')
+      # 2. 줄바꿈 더블 현상 방어 (코드 블록 완벽 대피소)
+      pre_blocks = []
+      
+      # 정규식을 <pre.*?>로 변경하여 클래스나 속성이 붙은 태그도 모두 잡아냅니다.
+      html.gsub!(/<pre.*?>.*?<\/pre>/m) do |match|
+        pre_blocks << match
+        "___PRE_BLOCK_#{pre_blocks.size - 1}___"
+      end
+
+      # 일반 텍스트에 남아있는 엔터(\n, \r)를 모조리 날려 이중 줄바꿈을 막습니다.
+      html.gsub!(/[\r\n]+/, '')
+
+      # 대피시켰던 코드 블록을 원상 복구합니다.
+      # (코드 안의 특수문자 오작동을 막기 위해 괄호 {} 블록 형태로 안전하게 집어넣습니다)
+      pre_blocks.each_with_index do |block, index|
+        html.gsub!("___PRE_BLOCK_#{index}___") { block }
+      end
+    else
+      # 마크다운이 꺼져 있을 때의 기본 로직
+      html = simple_format(html, {}, sanitize: false).delete("\n") if multiline?
+    end
+    # ------------------------------------------------
+
     html = add_quote_fallback(html) if options[:quoted_status].present?
 
     html.html_safe # rubocop:disable Rails/OutputSafety

@@ -29,6 +29,15 @@ export function getStatusContent(status) {
   return status.getIn(['translation', 'contentHtml']) || status.get('contentHtml');
 }
 
+// 주사위 무결성 검증
+const processDice = (html) => {
+  if (!html) return html;
+  // \u200B 문자 또는 HTML 엔티티(&#8203;, &#x200B;)를 모두 잡아냅니다.
+  return html.replace(
+    /(?:\u200B|&#8203;|&#x200B;)\[(.*?D.*?=.*?)\](?:\u200B|&#8203;|&#x200B;)/gi,
+    '<span class="chamomile-dice">[$1]</span>'
+  );
+};
 class TranslateButton extends PureComponent {
 
   static propTypes = {
@@ -192,7 +201,9 @@ class StatusContent extends PureComponent {
     const targetLanguages = this.props.languages?.get(status.get('language') || 'und');
     const renderTranslate = this.props.onTranslate && this.props.identity.signedIn && ['public', 'unlisted'].includes(status.get('visibility')) && status.get('search_index').trim().length > 0 && targetLanguages?.includes(contentLocale);
 
-    const content = statusContent ?? getStatusContent(status);
+    // rawContent로 주사위 무결성 검사
+    const rawContent = statusContent ?? getStatusContent(status);
+    const content = processDice(rawContent);
     const language = status.getIn(['translation', 'language']) || status.get('language');
     const classNames = classnames('status__content', {
       'status__content--with-action': this.props.onClick && this.props.history,

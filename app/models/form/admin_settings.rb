@@ -26,7 +26,9 @@ class Form::AdminSettings
     trends
     trendable_by_default
     chamomile_dice_enabled
+    chamomile_markdown_enabled
     chamomile_dm_admin_only
+    chamomile_boards
     show_domain_blocks
     show_domain_blocks_rationale
     allow_referrer_origin
@@ -66,6 +68,7 @@ class Form::AdminSettings
     trends
     trendable_by_default
     chamomile_dice_enabled
+    chamomile_markdown_enabled
     chamomile_dm_admin_only
     noindex
     require_invite_text
@@ -99,6 +102,26 @@ class Form::AdminSettings
   LANDING_PAGE = %w(trends about local_feed).freeze
 
   attr_accessor(*KEYS)
+
+# 커스텀 게시판
+  def chamomile_boards=(value)
+    if value.is_a?(Array)
+      clean_boards = []
+      
+      value.each do |board|
+        name_val = board[:name].to_s.strip
+        tag_val = board[:tag].to_s.strip
+        
+        if name_val.present? && tag_val.present?
+          clean_boards << { 'name' => name_val, 'tag' => tag_val }
+        end
+      end
+      
+      @chamomile_boards = clean_boards
+    else
+      @chamomile_boards = value || []
+    end
+  end
 
   validates :registrations_mode, inclusion: { in: REGISTRATION_MODES }, if: -> { defined?(@registrations_mode) }
   validates :site_contact_email, :site_contact_username, presence: true, if: -> { defined?(@site_contact_username) || defined?(@site_contact_email) }

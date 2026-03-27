@@ -8,10 +8,12 @@ import { NavLink, useRouteMatch } from 'react-router-dom';
 import AddIcon from '@/material-icons/400-24px/add.svg?react';
 import HomeActiveIcon from '@/material-icons/400-24px/home-fill.svg?react';
 import HomeIcon from '@/material-icons/400-24px/home.svg?react';
+import MailActiveIcon from '@/material-icons/400-24px/mail-fill.svg?react';
 import MenuIcon from '@/material-icons/400-24px/menu.svg?react';
 import NotificationsActiveIcon from '@/material-icons/400-24px/notifications-fill.svg?react';
 import NotificationsIcon from '@/material-icons/400-24px/notifications.svg?react';
 import SearchIcon from '@/material-icons/400-24px/search.svg?react';
+import MailIcon from '@/material-icons/400-24px/mail.svg?react';
 import { openModal } from 'mastodon/actions/modal';
 import { toggleNavigation } from 'mastodon/actions/navigation';
 import { fetchServer } from 'mastodon/actions/server';
@@ -31,6 +33,7 @@ export const messages = defineMessages({
     defaultMessage: 'Notifications',
   },
   menu: { id: 'tabs_bar.menu', defaultMessage: 'Menu' },
+  direct: { id: 'navigation_bar.direct', defaultMessage: 'Private mentions' },
 });
 
 const IconLabelButton: React.FC<{
@@ -192,6 +195,12 @@ export const NavigationBar: React.FC = () => {
               icon={<Icon id='' icon={AddIcon} />}
             />
             <NotificationsButton />
+            <IconLabelButton
+              title={intl.formatMessage(messages.direct)}
+              to='/conversations'
+              icon={<Icon id='' icon={MailIcon} />}
+              activeIcon={<Icon id='' icon={MailActiveIcon} />} // 액티브 시 보여줄 아이콘 지정
+            />
           </>
         )}
 

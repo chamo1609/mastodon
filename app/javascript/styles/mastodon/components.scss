@@ -11576,3 +11576,93 @@ noscript {
     gap: 4px;
   }
 }
+
+.chamomile-dice {
+  color: var(--color-bg-brand-base);
+  font-weight: bold;
+  // font-family: monospace;
+  white-space: nowrap;
+}
+
+/* 카모마일 에디션: 마크다운 스타일링 (수정본) */
+
+.status__content__text {
+  /* 1. 인라인 코드 */
+  code {
+    font-family: 'Source Code Pro', monospace !important;
+    background-color: rgba(127, 127, 127, 0.2) !important;
+    padding: 0.2em 0.4em !important;
+    border-radius: 4px !important;
+    font-size: 0.9em;
+  }
+
+  /* 2. 코드 블록 (pre) */
+  pre {
+    background-color: rgba(127, 127, 127, 0.2) !important;
+    padding: 16px !important;
+    border-radius: 8px !important;
+    overflow-x: auto !important;
+    margin: 10px 0 !important;
+
+    /* pre 안의 code는 인라인 코드 스타일을 무시하고 배경을 투명하게 유지 */
+    code {
+      background-color: transparent !important;
+      padding: 0 !important;
+      color: inherit !important;
+      font-size: 0.9em;
+    }
+  }
+
+  /* 3. 인용구 (blockquote) */
+  blockquote {
+    margin: 8px 0 !important;
+    padding: 0 0 0 16px !important;
+    color: var(--darker-text-color) !important;
+    border-left: 4px solid var(--color-bg-brand-base) !important;
+    font-style: italic !important;
+    background: none !important; 
+    border-top: none !important;
+    border-right: none !important;
+    border-bottom: none !important;
+
+    /* 마스토돈 기본 따옴표 모양(가상 요소) 완벽 제거 */
+    &::before,
+    &::after {
+      content: none !important;
+      display: none !important;
+      background-image: none !important;
+    }
+  }
+}
+
+/* 카모마일 에디션: 마크다운 헤더 스타일 */
+.status__content__text {
+  
+  /* 헤더 공통 속성 */
+  [class^="markdown-h"] {
+    line-height: 1.25 !important;
+    margin-top: 16px !important;
+    margin-bottom: 8px !important;
+    font-weight: bold !important;
+    
+    strong { font-weight: inherit !important; }
+  }
+
+  /* 개별 헤더 크기 및 스타일 */
+  .markdown-h1 { 
+    font-size: 2em !important; 
+    border-bottom: 1px solid var(--color-border) !important; 
+    padding-bottom: 0.3em !important; 
+  }
+  
+  .markdown-h2 { 
+    font-size: 1.5em !important; 
+    border-bottom: 1px solid var(--color-border) !important; 
+    padding-bottom: 0.3em !important; 
+  }
+  
+  .markdown-h3 { font-size: 1.25em !important; }
+  .markdown-h4 { font-size: 1em !important; }
+  .markdown-h5 { font-size: 0.875em !important; }
+  .markdown-h6 { font-size: 0.85em !important; color: var(--darker-text-color) !important; }
+}
