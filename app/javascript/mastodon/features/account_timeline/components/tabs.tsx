@@ -18,9 +18,9 @@ export const AccountTabs: FC<{ acct: string }> = ({ acct }) => {
   }
   return (
     <div className='account__section-headline'>
-      <NavLink exact to={`/@${acct}/featured`}>
+      {/* <NavLink exact to={`/@${acct}/featured`}>
         <FormattedMessage id='account.featured' defaultMessage='Featured' />
-      </NavLink>
+      </NavLink> */}
       <NavLink exact to={`/@${acct}`}>
         <FormattedMessage id='account.posts' defaultMessage='Posts' />
       </NavLink>

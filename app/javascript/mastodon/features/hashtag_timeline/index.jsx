@@ -190,7 +190,8 @@ class HashtagTimeline extends PureComponent {
         </ColumnHeader>
 
         <StatusListContainer
-          prepend={pinned ? null : <HashtagHeader tagId={id} />}
+          // prepend={pinned ? null : <HashtagHeader tagId={id} />}
+          prepend={null}
           alwaysPrepend
           trackScroll={!pinned}
           scrollKey={`hashtag_timeline-${columnId}`}

@@ -59,6 +59,8 @@ import { MoreLink } from './components/more_link';
 import { SignInBanner } from './components/sign_in_banner';
 import { Trends } from './components/trends';
 
+import { AccountSwitcher } from './components/account_switcher'; //계정 전환
+
 const messages = defineMessages({
   home: { id: 'tabs_bar.home', defaultMessage: 'Home' },
   notifications: {
@@ -306,7 +308,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
 
         {signedIn && (
           <>
-            <FollowedTagsPanel />
+            {/* <FollowedTagsPanel /> */}
 
             <hr />
 
@@ -326,7 +328,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
 
             <hr />
 
-            <ListPanel />
+            {/* <ListPanel /> */}
 
             <ColumnLink
               transparent
@@ -366,6 +368,10 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
             />
 
             <MoreLink />
+
+            <hr />
+
+            <AccountSwitcher />
           </>
         )}
 

@@ -11,6 +11,7 @@ import ArrowBackIcon from '@/material-icons/400-24px/arrow_back.svg?react';
 import ChevronLeftIcon from '@/material-icons/400-24px/chevron_left.svg?react';
 import ChevronRightIcon from '@/material-icons/400-24px/chevron_right.svg?react';
 import CloseIcon from '@/material-icons/400-24px/close.svg?react';
+import ArrowDropDownIcon from '@/material-icons/400-24px/arrow_drop_down.svg?react';
 import UnfoldLessIcon from '@/material-icons/400-24px/unfold_less.svg?react';
 import UnfoldMoreIcon from '@/material-icons/400-24px/unfold_more.svg?react';
 import type { IconProp } from 'mastodon/components/icon';
@@ -348,13 +349,25 @@ export const ColumnHeader: React.FC<Props> = ({
             </button>
 
             {/* 오른쪽 (50%): 카모마일 게시판 드롭다운 (커스텀 구현) */}
-            {boardItems.length > 0 && (
+            {icon === 'home' && boardItems.length > 0 && (
               <div ref={dropdownRef} style={{ flex: 1, display: 'flex', position: 'relative' }}>
                 <button
                   type='button'
                   onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(!boardMenuOpen); }}
-                  style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', border: 'none', color: 'inherit', fontWeight: 'bold', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+                  style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
                 >
+                  <Icon
+                    id='arrow-drop-down'
+                    icon={ArrowDropDownIcon}
+                    className='column-header__board-icon'
+                    style={{
+                      marginRight: '8px', // 아이콘과 글자 사이 간격
+                      // 드롭다운이 열려 있을 때만 아이콘을 180도 회전시킵니다.
+                      transform: boardMenuOpen ? 'rotate(180deg)' : 'none',
+                      // 부드러운 회전 효과를 위한 트랜지션 (선택 사항)
+                      transition: 'transform 0.2s ease-in-out',
+                    }}
+                  />
                   게시판
                 </button>
 

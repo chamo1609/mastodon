@@ -13,11 +13,41 @@ const makeGetStatusIds = (pending = false) => createSelector([
   (state, { type }) => state.getIn(['settings', type], ImmutableMap()),
   (state, { type }) => state.getIn(['timelines', type, pending ? 'pendingItems' : 'items'], ImmutableList()),
   (state)           => state.get('statuses'),
-], (columnSettings, statusIds, statuses) => {
+  (state, { type }) => type,
+  // 게시판
+  (state)           => state.getIn(['meta', 'chamomile_boards']),
+], (columnSettings, statusIds, statuses, timelineType, chamomileBoardsData) => {
+  const boards = chamomileBoardsData?.toJS ? chamomileBoardsData.toJS() : chamomileBoardsData || [];
+  const BOARD_TAGS = boards.map(b => b.tag.replace(/^#/, '').toLowerCase());
+
   return statusIds.filter(id => {
     if (isNonStatusId(id)) return true;
 
     const statusForId = statuses.get(id);
+    if (!statusForId) return false;
+
+    // 홈 화면에서 다이렉트 메시지 필터링
+    const visibility = statusForId.get('visibility');
+    if (visibility === 'direct') {
+      if (timelineType === 'home') {
+        return false;
+      }
+    }
+
+    // 홈 화면에서 게시판 해시태그 필터링
+    if (timelineType === 'home' && BOARD_TAGS.length > 0) {
+      const tags = statusForId.get('tags');
+      if (tags && !tags.isEmpty()) {
+        const hasBoardTag = tags.some(tag => {
+          const tagName = tag.get('name');
+          return tagName && BOARD_TAGS.includes(tagName.toLowerCase());
+        });
+
+        if (hasBoardTag) {
+          return false; // 게시판 태그가 일치하면 타임라인에서 제외
+        }
+      }
+    }
 
     if (statusForId.get('account') === me) return true;
 
@@ -54,7 +84,6 @@ const makeMapStateToProps = () => {
 };
 
 const mapDispatchToProps = (dispatch, { timelineId }) => ({
-
   onScrollToTop: debounce(() => {
     dispatch(scrollTopTimeline(timelineId, true));
   }, 100),
@@ -64,7 +93,6 @@ const mapDispatchToProps = (dispatch, { timelineId }) => ({
   }, 100),
 
   onLoadPending: () => dispatch(loadPending(timelineId)),
-
 });
 
 export default connect(makeMapStateToProps, mapDispatchToProps)(StatusList);

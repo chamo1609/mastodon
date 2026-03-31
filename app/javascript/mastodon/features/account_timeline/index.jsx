@@ -24,7 +24,23 @@ import { AccountHeader } from './components/account_header';
 import { LimitedAccountHint } from './components/limited_account_hint';
 import { FeaturedCarousel } from '@/mastodon/components/featured_carousel';
 
+import { createSelector } from 'reselect';    // 프로필에서 DM 숨기기
+
 const emptyList = ImmutableList();
+
+const getFilteredStatusIds = createSelector(
+  // 프로필에서 DM 숨기기
+  [
+    (state, path) => state.getIn(['timelines', `account:${path}`, 'items'], emptyList),
+    (state) => state.get('statuses'),
+  ],
+  (rawStatusIds, statuses) => {
+    return rawStatusIds.filter(statusId => {
+      const status = statuses.get(statusId);
+      return status ? status.get('visibility') !== 'direct' : true;
+    });
+  }
+);
 
 const mapStateToProps = (state, { params: { acct, id, tagged }, withReplies = false }) => {
   const accountId = id || state.accounts_map[normalizeForLookup(acct)];
@@ -47,7 +63,8 @@ const mapStateToProps = (state, { params: { acct, id, tagged }, withReplies = fa
   return {
     accountId,
     isAccount: !!state.getIn(['accounts', accountId]),
-    statusIds: state.getIn(['timelines', `account:${path}`, 'items'], emptyList),
+    // 2. 직접 필터링 대신 최적화된 셀렉터를 호출합니다.
+    statusIds: getFilteredStatusIds(state, path),
     isLoading: state.getIn(['timelines', `account:${path}`, 'isLoading']),
     hasMore: state.getIn(['timelines', `account:${path}`, 'hasMore']),
     suspended: state.getIn(['accounts', accountId, 'suspended'], false),
