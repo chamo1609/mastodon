@@ -358,6 +358,7 @@ export const ColumnHeader: React.FC<Props> = ({
                   onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(!boardMenuOpen); }}
                   style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
                 >
+                  게시판
                   <Icon
                     id='arrow-drop-down'
                     icon={ArrowDropDownIcon}
@@ -370,7 +371,6 @@ export const ColumnHeader: React.FC<Props> = ({
                       transition: 'transform 0.2s ease-in-out',
                     }}
                   />
-                  게시판
                 </button>
 
                 {/* 드롭다운 메뉴 본체 */}
