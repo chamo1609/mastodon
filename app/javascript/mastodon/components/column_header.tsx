@@ -14,6 +14,8 @@ import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 import ArrowDropDownIcon from '@/material-icons/400-24px/arrow_drop_down.svg?react';
 import UnfoldLessIcon from '@/material-icons/400-24px/unfold_less.svg?react';
 import UnfoldMoreIcon from '@/material-icons/400-24px/unfold_more.svg?react';
+import TuneIcon from '@/material-icons/400-24px/tune.svg?react';
+import TuneActiveIcon from '@/material-icons/400-24px/tune-fill.svg?react';
 import type { IconProp } from 'mastodon/components/icon';
 import { Icon } from 'mastodon/components/icon';
 import { ButtonInTabsBar } from 'mastodon/features/ui/util/columns_context';
@@ -308,7 +310,7 @@ export const ColumnHeader: React.FC<Props> = ({
         <i className='icon-with-badge'>
           <Icon
             id='sliders'
-            icon={collapsed ? UnfoldMoreIcon : UnfoldLessIcon}
+            icon={collapsed ? TuneIcon : TuneActiveIcon}
           />
           {collapseIssues && <i className='icon-with-badge__issue-badge' />}
         </i>

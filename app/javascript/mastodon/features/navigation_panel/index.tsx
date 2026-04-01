@@ -27,6 +27,8 @@ import PublicIcon from '@/material-icons/400-24px/public.svg?react';
 import SettingsIcon from '@/material-icons/400-24px/settings.svg?react';
 import StarActiveIcon from '@/material-icons/400-24px/star-fill.svg?react';
 import StarIcon from '@/material-icons/400-24px/star.svg?react';
+import AccountActiveIcon from '@/material-icons/400-24px/account_circle-fill.svg?react';
+import AccountIcon from '@/material-icons/400-24px/account_circle.svg?react';
 import TrendingUpIcon from '@/material-icons/400-24px/trending_up.svg?react';
 import { fetchFollowRequests } from 'mastodon/actions/accounts';
 import { openNavigation, closeNavigation } from 'mastodon/actions/navigation';
@@ -58,8 +60,6 @@ import { ListPanel } from './components/list_panel';
 import { MoreLink } from './components/more_link';
 import { SignInBanner } from './components/sign_in_banner';
 import { Trends } from './components/trends';
-
-import { AccountSwitcher } from './components/account_switcher'; //계정 전환
 
 const messages = defineMessages({
   home: { id: 'tabs_bar.home', defaultMessage: 'Home' },
@@ -215,6 +215,9 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
   const location = useLocation();
   const showSearch = useBreakpoint('full') && !multiColumn;
 
+  const meAccount = useAppSelector((state) => (me ? state.accounts.get(me) : null));
+  const myHandle = meAccount ? (meAccount.get('username') as string) : '';
+
   let banner: React.ReactNode;
 
   if (transientSingleColumn) {
@@ -361,6 +364,15 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
 
             <ColumnLink
               transparent
+              to={`/@${myHandle}`}
+              icon='profile' // 아이콘 식별자를 구분해 줍니다.
+              iconComponent={AccountIcon}
+              activeIconComponent={AccountActiveIcon}
+              text='프로필'
+            />
+
+            <ColumnLink
+              transparent
               href='/settings/preferences'
               icon='cog'
               iconComponent={SettingsIcon}
@@ -368,10 +380,6 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
             />
 
             <MoreLink />
-
-            <hr />
-
-            <AccountSwitcher />
           </>
         )}
 

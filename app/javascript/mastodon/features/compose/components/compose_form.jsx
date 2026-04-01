@@ -1,5 +1,5 @@
+import React, { createRef } from 'react';
 import PropTypes from 'prop-types';
-import { createRef } from 'react';
 
 import { defineMessages, injectIntl } from 'react-intl';
 
@@ -31,6 +31,8 @@ import { UploadForm } from './upload_form';
 import { Warning } from './warning';
 import { ComposeQuotedStatus } from './quoted_post';
 import { VisibilityButton } from './visibility_button';
+
+import { AddAccountModal } from './add_account_modal';
 
 const allowedAroundShortCode = '><\u0085\u0020\u00a0\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2007\u2008\u2009\u200a\u202f\u205f\u3000\u2028\u2029\u0009\u000a\u000b\u000c\u000d';
 
@@ -83,12 +85,34 @@ class ComposeForm extends ImmutablePureComponent {
 
   state = {
     highlighted: false,
+    selectedAccount: null,
+    isLocalSubmitting: false,
+    isAddModalOpen: false, // 모달 상태 부활
   };
 
   constructor(props) {
     super(props);
     this.textareaRef = createRef(null);
   }
+
+  handleSelectAccount = (account) => {
+    this.setState({ selectedAccount: account });
+  };
+
+  handleAddAccountClick = () => {
+    this.setState({ isAddModalOpen: true });
+  };
+
+  handleCloseAddModal = () => {
+    this.setState({ isAddModalOpen: false });
+  };
+
+  handleAddAccountSuccess = (newAccount) => {
+    this.setState({
+      isAddModalOpen: false,
+      selectedAccount: newAccount,
+    });
+  };
 
   handleChange = (e) => {
     this.props.onChange(e.target.value);
@@ -102,8 +126,7 @@ class ComposeForm extends ImmutablePureComponent {
 
   handleKeyDownPost = (e) => {
     if (e.key.toLowerCase() === 'enter' && (e.ctrlKey || e.metaKey)) {
-        this.handleSubmit();
-        e.preventDefault();
+        this.handleSubmit(e);
     }
     this.blurOnEscape(e);
   };
@@ -111,7 +134,7 @@ class ComposeForm extends ImmutablePureComponent {
   handleKeyDownSpoiler = (e) => {
     if (e.key.toLowerCase() === 'enter') {
       if (e.ctrlKey || e.metaKey) {
-        this.handleSubmit();
+        this.handleSubmit(e);
       } else {
         e.preventDefault();
         this.textareaRef.current?.focus();
@@ -126,15 +149,14 @@ class ComposeForm extends ImmutablePureComponent {
 
   canSubmit = () => {
     const { isSubmitting, isChangingUpload, isUploading, maxChars } = this.props;
+    const { isLocalSubmitting } = this.state;
     const fulltext = this.getFulltextForCharacterCounting();
 
-    return !(isSubmitting || isUploading || isChangingUpload || length(fulltext) > maxChars);
+    return !(isSubmitting || isLocalSubmitting || isUploading || isChangingUpload || length(fulltext) > maxChars);
   };
 
-  handleSubmit = (e) => {
+  handleSubmit = async (e) => {
     if (this.props.text !== this.textareaRef.current.value) {
-      // Something changed the text inside the textarea (e.g. browser extensions like Grammarly)
-      // Update the state to match the current text
       this.props.onChange(this.textareaRef.current.value);
     }
 
@@ -142,13 +164,52 @@ class ComposeForm extends ImmutablePureComponent {
       return;
     }
 
-    this.props.onSubmit({
-      missingAltText: missingAltTextModal && this.props.missingAltText && this.props.privacy !== 'direct',
-      quoteToPrivate: this.props.quoteToPrivate,
-    });
-
     if (e) {
       e.preventDefault();
+    }
+
+    const { selectedAccount } = this.state;
+
+    if (!selectedAccount) {
+      this.props.onSubmit({
+        missingAltText: missingAltTextModal && this.props.missingAltText && this.props.privacy !== 'direct',
+        quoteToPrivate: this.props.quoteToPrivate,
+      });
+      return;
+    }
+
+    this.setState({ isLocalSubmitting: true });
+
+    try {
+      const payload = {
+        status: this.props.text,
+        visibility: this.props.privacy,
+        language: this.props.lang,
+        spoiler_text: this.props.spoiler ? this.props.spoilerText : '',
+      };
+
+      const response = await fetch('/api/v1/statuses', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${selectedAccount.token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error('부계정에서 툿을 발행하는 중 서버 에러가 발생했습니다.');
+      }
+
+      this.props.onChange('');
+      if (this.props.spoiler) {
+        this.props.onChangeSpoilerText('');
+      }
+    } catch (error) {
+      console.error('부계정 툿 발행 실패:', error);
+      alert('해당 부계정으로 툿을 발행하지 못했습니다. 연결을 다시 확인해 주십시오.');
+    } finally {
+      this.setState({ isLocalSubmitting: false });
     }
   };
 
@@ -194,11 +255,6 @@ class ComposeForm extends ImmutablePureComponent {
   }
 
   _updateFocusAndSelection = (prevProps) => {
-    // This statement does several things:
-    // - If we're beginning a reply, and,
-    //     - Replying to zero or one users, places the cursor at the end of the textbox.
-    //     - Replying to more than one user, selects any usernames past the first;
-    //       this provides a convenient shortcut to drop everyone else from the conversation.
     if (this.props.focusDate && this.props.focusDate !== prevProps.focusDate) {
       let selectionEnd, selectionStart;
 
@@ -213,9 +269,6 @@ class ComposeForm extends ImmutablePureComponent {
         selectionStart = selectionEnd;
       }
 
-      // Because of the wicg-inert polyfill, the activeElement may not be
-      // immediately selectable, we have to wait for observers to run, as
-      // described in https://github.com/WICG/inert#performance-and-gotchas
       Promise.resolve().then(() => {
         this.textareaRef.current.setSelectionRange(selectionStart, selectionEnd);
         this.textareaRef.current.focus();
@@ -251,99 +304,115 @@ class ComposeForm extends ImmutablePureComponent {
 
   render () {
     const { intl, onPaste, onDrop, autoFocus, withoutNavigation, maxChars, isSubmitting } = this.props;
-    const { highlighted } = this.state;
+    const { highlighted, selectedAccount, isLocalSubmitting } = this.state;
 
     return (
-      <form className='compose-form' onSubmit={this.handleSubmit}>
-        <ReplyIndicator />
-        {!withoutNavigation && <NavigationBar />}
-        <Warning />
-
-        <div className={classNames('compose-form__highlightable', { active: highlighted })} ref={this.setRef}>
-          <EditIndicator />
-
-          <div className='compose-form__dropdowns'>
-            <VisibilityButton disabled={this.props.isEditing} />
-            <LanguageDropdown />
-          </div>
-
-          {this.props.spoiler && (
-            <div className='spoiler-input'>
-              <div className='spoiler-input__border' />
-
-              <AutosuggestInput
-                placeholder={intl.formatMessage(messages.spoiler_placeholder)}
-                value={this.props.spoilerText}
-                disabled={isSubmitting}
-                onChange={this.handleChangeSpoilerText}
-                onKeyDown={this.handleKeyDownSpoiler}
-                ref={this.setSpoilerText}
-                suggestions={this.props.suggestions}
-                onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-                onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-                onSuggestionSelected={this.onSpoilerSuggestionSelected}
-                searchTokens={[':']}
-                id='cw-spoiler-input'
-                className='spoiler-input__input'
-                lang={this.props.lang}
-                spellCheck
-              />
-
-              <div className='spoiler-input__border' />
-            </div>
-          )}
-
-          <AutosuggestTextarea
-            ref={this.textareaRef}
-            placeholder={intl.formatMessage(messages.placeholder)}
-            disabled={isSubmitting}
-            value={this.props.text}
-            onChange={this.handleChange}
-            suggestions={this.props.suggestions}
-            onFocus={this.handleFocus}
-            onKeyDown={this.handleKeyDownPost}
-            onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
-            onSuggestionsClearRequested={this.onSuggestionsClearRequested}
-            onSuggestionSelected={this.onSuggestionSelected}
-            onPaste={onPaste}
-            onDrop={onDrop}
-            autoFocus={autoFocus}
-            lang={this.props.lang}
-            className='compose-form__input'
+      <React.Fragment>
+        {/* 모달 렌더링 부활 */}
+        {this.state.isAddModalOpen && (
+          <AddAccountModal 
+            onClose={this.handleCloseAddModal} 
+            onSuccess={this.handleAddAccountSuccess} 
           />
+        )}
+        <form className='compose-form' onSubmit={this.handleSubmit}>
+          <ReplyIndicator />
+          
+          {!withoutNavigation && (
+            <NavigationBar 
+              selectedAccount={selectedAccount}
+              onSelectAccount={this.handleSelectAccount}
+              onAddAccountClick={this.handleAddAccountClick}
+            />
+          )}
+          <Warning />
 
-          <UploadForm />
-          <PollForm />
-          <ComposeQuotedStatus />
+          <div className={classNames('compose-form__highlightable', { active: highlighted })} ref={this.setRef}>
+            <EditIndicator />
 
-          <div className='compose-form__footer'>
-            <div className='compose-form__actions'>
-              <div className='compose-form__buttons'>
-                <UploadButtonContainer />
-                <PollButtonContainer />
-                <SpoilerButtonContainer />
-                <EmojiPickerDropdown onPickEmoji={this.handleEmojiPick} />
-                <CharacterCounter max={maxChars} text={this.getFulltextForCharacterCounting()} />
+            <div className='compose-form__dropdowns'>
+              <VisibilityButton disabled={this.props.isEditing} />
+              <LanguageDropdown />
+            </div>
+
+            {this.props.spoiler && (
+              <div className='spoiler-input'>
+                <div className='spoiler-input__border' />
+
+                <AutosuggestInput
+                  placeholder={intl.formatMessage(messages.spoiler_placeholder)}
+                  value={this.props.spoilerText}
+                  disabled={isSubmitting || isLocalSubmitting}
+                  onChange={this.handleChangeSpoilerText}
+                  onKeyDown={this.handleKeyDownSpoiler}
+                  ref={this.setSpoilerText}
+                  suggestions={this.props.suggestions}
+                  onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+                  onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+                  onSuggestionSelected={this.onSpoilerSuggestionSelected}
+                  searchTokens={[':']}
+                  id='cw-spoiler-input'
+                  className='spoiler-input__input'
+                  lang={this.props.lang}
+                  spellCheck
+                />
+
+                <div className='spoiler-input__border' />
               </div>
+            )}
 
-              <div className='compose-form__submit'>
-                <Button
-                  type='submit'
-                  compact
-                  disabled={!this.canSubmit()}
-                  loading={isSubmitting}
-                >
-                  {intl.formatMessage(
-                    this.props.isEditing ?
-                      messages.saveChanges :
-                      (this.props.isInReply ? messages.reply : messages.publish)
-                  )}
-                </Button>
+            <AutosuggestTextarea
+              ref={this.textareaRef}
+              placeholder={intl.formatMessage(messages.placeholder)}
+              disabled={isSubmitting || isLocalSubmitting}
+              value={this.props.text}
+              onChange={this.handleChange}
+              suggestions={this.props.suggestions}
+              onFocus={this.handleFocus}
+              onKeyDown={this.handleKeyDownPost}
+              onSuggestionsFetchRequested={this.onSuggestionsFetchRequested}
+              onSuggestionsClearRequested={this.onSuggestionsClearRequested}
+              onSuggestionSelected={this.onSuggestionSelected}
+              onPaste={onPaste}
+              onDrop={onDrop}
+              autoFocus={autoFocus}
+              lang={this.props.lang}
+              className='compose-form__input'
+            />
+
+            <UploadForm />
+            <PollForm />
+            <ComposeQuotedStatus />
+
+            <div className='compose-form__footer'>
+              <div className='compose-form__actions'>
+                <div className='compose-form__buttons'>
+                  <UploadButtonContainer />
+                  <PollButtonContainer />
+                  <SpoilerButtonContainer />
+                  <EmojiPickerDropdown onPickEmoji={this.handleEmojiPick} />
+                  <CharacterCounter max={maxChars} text={this.getFulltextForCharacterCounting()} />
+                </div>
+
+                <div className='compose-form__submit'>
+                  <Button
+                    type='submit'
+                    compact
+                    disabled={!this.canSubmit()}
+                    loading={isSubmitting || isLocalSubmitting}
+                  >
+                    {intl.formatMessage(
+                      this.props.isEditing ?
+                        messages.saveChanges :
+                        (this.props.isInReply ? messages.reply : messages.publish)
+                    )}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-      </form>
+        </form>
+      </React.Fragment>
     );
   }
 
