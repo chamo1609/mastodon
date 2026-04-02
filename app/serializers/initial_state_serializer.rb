@@ -5,7 +5,7 @@ class InitialStateSerializer < ActiveModel::Serializer
 
   attributes :meta, :compose, :accounts,
              :media_attachments, :settings,
-             :languages, :features
+             :languages, :features, :instance
 
   attribute :critical_updates_pending, if: -> { object&.role&.can?(:view_devops) && SoftwareUpdate.check_enabled? }
 
@@ -91,6 +91,10 @@ class InitialStateSerializer < ActiveModel::Serializer
 
   def features
     Mastodon::Feature.enabled_features
+  end
+
+  def instance
+    ActiveModelSerializers::SerializableResource.new(instance_presenter, serializer: REST::V1::InstanceSerializer)
   end
 
   private

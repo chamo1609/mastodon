@@ -8,13 +8,23 @@ class StatusLengthValidator < ActiveModel::Validator
   def validate(status)
     return unless status.local? && !status.reblog?
 
-    status.errors.add(:text, I18n.t('statuses.over_character_limit', max: MAX_CHARS)) if too_long?(status)
+    # 관리자 설정값을 안전하게 정수(Integer)로 변환합니다.
+    base_limit = (Setting.status_length_limit || MAX_CHARS).to_i
+    effective_limit = base_limit + 100
+
+    # too_long? 메서드에 status와 effective_limit 두 개의 인자를 전달합니다.
+    if too_long?(status, effective_limit)
+      # 글자 수를 초과했을 경우 사용자에게 보여줄 에러 메시지를 추가합니다.
+      status.errors.add(:text, I18n.t('statuses.over_character_limit', max: base_limit))
+    end
   end
 
   private
 
-  def too_long?(status)
-    countable_length(combined_text(status)) > MAX_CHARS
+  # 이제 (status, limit) 두 개의 인자를 정상적으로 받습니다.
+  def too_long?(status, limit)
+    # 고정된 MAX_CHARS가 아닌 전달받은 limit(effective_limit) 값과 비교합니다.
+    countable_length(combined_text(status)) > limit
   end
 
   def countable_length(str)

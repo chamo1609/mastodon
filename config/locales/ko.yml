@@ -822,7 +822,7 @@ ko:
         title: 새로운 사용자가 계정 확인을 위해서는 CAPTCHA를 풀어야 하도록 합니다
       chamomile:
         title: 카모마일 설정
-        preamble: 카모마일 에디션의 커뮤니티 전용 특수 설정들을 관리합니다.
+        preamble: 카모마일 에디션의 커뮤니티 특수 설정 관리
       content_retention:
         danger_zone: 위험한 영역
         preamble: 마스토돈에 저장된 사용자 콘텐츠를 어떻게 다룰지 제어합니다.

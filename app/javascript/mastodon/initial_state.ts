@@ -51,6 +51,14 @@ interface InitialStateMeta {
   wrapstodon?: InitialWrapstodonState | null;
 }
 
+interface InitialStateInstance {
+  configuration: {
+    statuses: {
+      max_characters: number;
+    };
+  };
+}
+
 interface Role {
   id: string;
   name: string;
@@ -71,6 +79,7 @@ export interface InitialState {
   meta: InitialStateMeta;
   role?: Role;
   features: string[];
+  instance?: InitialStateInstance;
 }
 
 const element = document.getElementById('initial-state');
@@ -136,6 +145,7 @@ export const statusPageUrl = getMeta('status_page_url');
 export const sso_redirect = getMeta('sso_redirect');
 export const termsOfServiceEnabled = getMeta('terms_of_service_enabled');
 export const wrapstodon = getMeta('wrapstodon');
+export const instance = initialState?.instance;
 
 const displayNames =
   // Intl.DisplayNames can be undefined in old browsers

@@ -2,7 +2,7 @@
   = t('admin.settings.chamomile.title')
 
 - content_for :heading do
-  %h2= t('admin.settings.title')
+  %h1= t('admin.settings.title')
   = render partial: 'admin/settings/shared/links'
 
 = simple_form_for @admin_settings, url: admin_settings_chamomile_path, html: { method: :patch } do |f|
@@ -10,29 +10,41 @@
 
   %p.lead= t('admin.settings.chamomile.preamble')
 
-  %h4 편의 기능
+  %h2 서버 기본 설정
+
+  .fields-group
+    = f.input :status_length_limit,
+              as: :integer,
+              input_html: { min: 1 },
+              label: '발행 툿 최대 글자수 설정',
+              wrapper: :with_block_label
+
+  %h2 편의 기능
 
   .fields-group
     = f.input :chamomile_dice_enabled,
               as: :boolean,
-              wrapper: :with_label,
-              label: '주사위 기능 활성화 ([[1d100]] 명령어 사용)'
+              label: '주사위 기능 활성화 ([[1d100]] 명령어 사용)',
+              wrapper: :with_label
+
   .fields-group
     = f.input :chamomile_markdown_enabled,
               as: :boolean,
-              wrapper: :with_label,
-              label: '마크다운 문법 활성화'
+              label: '마크다운 문법 활성화',
+              wrapper: :with_label
 
-  %h4 관리 및 보안
+  %h2 관리 및 보안
 
   .fields-group
     = f.input :chamomile_dm_admin_only,
               as: :boolean,
-              wrapper: :with_label,
-              label: '관리자 미포함 DM 차단 (관리자가 1명 이상 태그되어야 DM 발송 가능)'
+              label: '관리자 미포함 DM 차단 (관리자가 1명 이상 태그되어야 DM 발송 가능)',
+              wrapper: :with_label
+
+  %h2 커스텀 게시판 설정
+
   .fields-group
-    %h4 커스텀 게시판 설정
-    %p.hint 게시판 이름과 연결될 해시태그(링크)를 짝지어 입력하세요..
+    %p.hint 게시판 이름과 연결될 해시태그(링크)를 짝지어 입력하세요.
 
     - boards = @admin_settings.chamomile_boards || []
     
@@ -42,7 +54,6 @@
           - board = boards[i] || {}
           %tr
             %td
-              / board['name'] (문자열)과 board[:name] (기호) 모두 대응하도록 처리
               = text_field_tag 'form_admin_settings[chamomile_boards][][name]', board['name'] || board[:name], placeholder: '이름', style: 'width: 140px !important; display: block !important;'
             %td{ width: '20' }
             %td

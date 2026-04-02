@@ -43,6 +43,7 @@ class Form::AdminSettings
     app_icon
     favicon
     min_age
+    status_length_limit
     local_live_feed_access
     remote_live_feed_access
     local_topic_feed_access
@@ -56,6 +57,7 @@ class Form::AdminSettings
     content_cache_retention_period
     backups_retention_period
     min_age
+    status_length_limit
   ).freeze
 
   BOOLEAN_KEYS = %i(

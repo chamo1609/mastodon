@@ -36,11 +36,10 @@ defaults: &defaults
   wrapstodon: true
 
   # --- Chamomile Edition Settings ---
-  chamomile_dice_enabled:
-    default: true
-  chamomile_markdown_enabled:
-    default: true
+  chamomile_dice_enabled: true
+  chamomile_markdown_enabled: true
   chamomile_boards: []
+  status_length_limit: 500
 
 development:
   <<: *defaults

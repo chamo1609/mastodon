@@ -15,10 +15,10 @@ import {
   SERVER_DOMAIN_BLOCKS_FETCH_FAIL,
 } from 'mastodon/actions/server';
 
+import { instance } from 'mastodon/initial_state';
+
 const initialState = ImmutableMap({
-  server: ImmutableMap({
-    isLoading: false,
-  }),
+  server: fromJS(instance || {}).set('isLoading', false),
 
   extendedDescription: ImmutableMap({
     isLoading: false,
