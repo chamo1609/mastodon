@@ -102,6 +102,7 @@ namespace :api, format: false do
       member do
         post :read
         post :unread
+        get :statuses
       end
     end
 

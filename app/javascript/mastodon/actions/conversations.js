@@ -111,3 +111,28 @@ export const deleteConversationFail = (id, error) => ({
   id,
   error,
 });
+
+export const CONVERSATION_TIMELINE_FETCH_REQUEST = 'CONVERSATION_TIMELINE_FETCH_REQUEST';
+export const CONVERSATION_TIMELINE_FETCH_SUCCESS = 'CONVERSATION_TIMELINE_FETCH_SUCCESS';
+export const CONVERSATION_TIMELINE_FETCH_FAIL    = 'CONVERSATION_TIMELINE_FETCH_FAIL';
+
+export const expandConversationTimeline = (conversationId, { maxId } = {}) => (dispatch) => {
+  dispatch({ type: CONVERSATION_TIMELINE_FETCH_REQUEST, conversationId });
+
+  const params = { max_id: maxId };
+
+  api().get(`/api/v1/conversations/${conversationId}/statuses`, { params })
+    .then(response => {
+      const next = getLinks(response).refs.find(link => link.rel === 'next');
+      dispatch(importFetchedStatuses(response.data));
+      dispatch({
+        type: CONVERSATION_TIMELINE_FETCH_SUCCESS,
+        conversationId,
+        statuses: response.data,
+        next: next ? next.uri : null,
+      });
+    })
+    .catch(error => {
+      dispatch({ type: CONVERSATION_TIMELINE_FETCH_FAIL, conversationId, error });
+    });
+};

@@ -11,7 +11,7 @@ echo "========================================"
 if [ ! -f "$ENV_FILE" ]; then
   echo "설정 파일($ENV_FILE)을 찾을 수 없습니다."
   echo "----------------------------------------"
-  echo "카모마일 에디션 설치 가이드: https://chamomile.postype.com/0000"
+  echo "카모마일 에디션 설치 가이드: https://postype.com/@chamomile/todo"
   echo "----------------------------------------"
   exit 1
 fi

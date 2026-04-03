@@ -192,7 +192,7 @@ export function directCompose(account) {
 
 export function submitCompose(successCallback) {
   return function (dispatch, getState) {
-    // 1. 본문을 담는 변수(status)를 수정할 수 있도록 const 대신 let으로 선언합니다.
+    // 1. 본문을 담는 변수(status)
     let status   = getState().getIn(['compose', 'text'], '');
 
     // --- 카모마일 에디션 게시판 해시태그 자동 첨부 로직 시작 ---
@@ -203,11 +203,26 @@ export function submitCompose(successCallback) {
       const isBoard = boardsJS.some(b => b.tag === activeBoardTag);
 
       if (isBoard && !status.includes(`#${activeBoardTag}`)) {
-        // 내용이 있을 때는 줄바꿈 후 태그를 붙이고, 내용이 없으면 태그만 입력합니다.
         status = status.trim().length > 0 ? `${status}\n\n#${activeBoardTag}` : `#${activeBoardTag}`;
       }
     }
     // --- 카모마일 로직 끝 ---
+
+    // 2. 서버로 전송할 답글 ID와 가시성 변수 추출
+    let in_reply_to_id = getState().getIn(['compose', 'in_reply_to']);
+    let visibility = getState().getIn(['compose', 'privacy']);
+
+    // --- 채팅방(DM) 전송 가로채기 로직 시작 ---
+    if (window.chatRoomMentions) {
+      status = window.chatRoomMentions + status;
+      visibility = 'direct';
+      
+      if (window.chatRoomLastStatusId) {
+        in_reply_to_id = window.chatRoomLastStatusId;
+      }
+    }
+    // --- 채팅방 전송 가로채기 로직 끝 ---
+
     const media    = getState().getIn(['compose', 'media_attachments']);
     const statusId = getState().getIn(['compose', 'id'], null);
     const hasQuote = !!getState().getIn(['compose', 'quoted_status_id']);
@@ -227,9 +242,6 @@ export function submitCompose(successCallback) {
 
     dispatch(submitComposeRequest());
 
-    // If we're editing a post with media attachments, those have not
-    // necessarily been changed on the server. Do it now in the same
-    // API call.
     let media_attributes;
     if (statusId !== null) {
       media_attributes = media.map(item => {
@@ -247,14 +259,13 @@ export function submitCompose(successCallback) {
       });
     }
 
-    const visibility = getState().getIn(['compose', 'privacy']);
     api().request({
       url: statusId === null ? '/api/v1/statuses' : `/api/v1/statuses/${statusId}`,
       method: statusId === null ? 'post' : 'put',
       data: {
         status,
         spoiler_text,
-        in_reply_to_id: getState().getIn(['compose', 'in_reply_to'], null),
+        in_reply_to_id: in_reply_to_id,
         media_ids: media.map(item => item.get('id')),
         media_attributes,
         sensitive: getState().getIn(['compose', 'sensitive']),
@@ -278,8 +289,6 @@ export function submitCompose(successCallback) {
         successCallback(response.data);
       }
 
-      // To make the app more responsive, immediately push the status
-      // into the columns
       const insertIfOnline = timelineId => {
         const timeline = getState().getIn(['timelines', timelineId]);
 

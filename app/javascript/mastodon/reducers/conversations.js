@@ -12,6 +12,9 @@ import {
   CONVERSATIONS_UPDATE,
   CONVERSATIONS_READ,
   CONVERSATIONS_DELETE_SUCCESS,
+  CONVERSATION_TIMELINE_FETCH_REQUEST,
+  CONVERSATION_TIMELINE_FETCH_SUCCESS,
+  CONVERSATION_TIMELINE_FETCH_FAIL,
 } from '../actions/conversations';
 import { compareId } from '../compare_id';
 
@@ -20,6 +23,7 @@ const initialState = ImmutableMap({
   isLoading: false,
   hasMore: true,
   mounted: false,
+  timelines: ImmutableMap(), 
 });
 
 const conversationToMap = item => ImmutableMap({
@@ -112,6 +116,33 @@ export default function conversations(state = initialState, action) {
     return filterConversations(state, action.payload.accounts);
   case CONVERSATIONS_DELETE_SUCCESS:
     return state.update('items', list => list.filterNot(item => item.get('id') === action.id));
+
+  case CONVERSATION_TIMELINE_FETCH_REQUEST:
+    return state.updateIn(['timelines', action.conversationId], ImmutableMap(), timeline =>
+      timeline.set('isLoading', true)
+    );
+
+  case CONVERSATION_TIMELINE_FETCH_FAIL:
+    return state.updateIn(['timelines', action.conversationId], ImmutableMap(), timeline =>
+      timeline.set('isLoading', false)
+    );
+
+  case CONVERSATION_TIMELINE_FETCH_SUCCESS:
+    return state.updateIn(['timelines', action.conversationId], ImmutableMap(), timeline => {
+      let items = timeline.get('items', ImmutableList());
+      const newItems = ImmutableList(action.statuses.map(s => s.id));
+
+      items = items.concat(newItems).toSet().toList().sort((a, b) => compareId(a, b) * -1);
+
+      return timeline.withMutations(m => {
+        m.set('items', items);
+        m.set('isLoading', false);
+        if (!action.next) {
+          m.set('hasMore', false);
+        }
+      });
+    });
+
   default:
     return state;
   }

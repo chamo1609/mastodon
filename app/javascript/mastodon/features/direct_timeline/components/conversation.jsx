@@ -62,8 +62,8 @@ export const Conversation = ({ conversation, scrollKey }) => {
       dispatch(markConversationRead(id));
     }
 
-    history.push(`/@${lastStatus.getIn(['account', 'acct'])}/${lastStatus.get('id')}`);
-  }, [dispatch, history, unread, id, lastStatus]);
+    history.push(`/conversations/${id}`);
+  }, [dispatch, history, unread, id]);
 
   const handleMarkAsRead = useCallback(() => {
     dispatch(markConversationRead(id));

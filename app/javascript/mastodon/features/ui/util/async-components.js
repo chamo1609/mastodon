@@ -270,3 +270,7 @@ export function ListEdit () {
 export function ListMembers () {
   return import('../../lists/members');
 }
+
+export function ChatRoom () {
+  return import(/* webpackChunkName: "features/chat_room" */'../../chat_room');
+}
