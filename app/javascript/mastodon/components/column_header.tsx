@@ -323,6 +323,15 @@ export const ColumnHeader: React.FC<Props> = ({
   const hasTitle = (hasIcon || backButton) && title;
   const columnIndex = useColumnIndexContext();
 
+  const titleContents = (
+    <>
+      {!backButton && hasIcon && (
+        <Icon id={icon} icon={iconComponent} className='column-header__icon' />
+      )}
+      {title}
+    </>
+  );
+
   const component = (
     <div className={wrapperClassName}>
       {/* h1 내부 여백을 없애고 flex 컨테이너로 만듭니다 */}
@@ -331,97 +340,100 @@ export const ColumnHeader: React.FC<Props> = ({
           <div style={{ display: 'flex', flex: 1, width: '100%', alignItems: 'stretch' }}>
             {backButton}
 
-            {/* 왼쪽 (50%): 기존 타이틀 (홈 등) */}
-            <button
-              onClick={handleTitleClick}
-              className='column-header__title'
-              type='button'
-              id={getColumnSkipLinkId(columnIndex)}
-              style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRight: boardItems.length > 0 ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
-            >
-              {!backButton && hasIcon && (
-                <Icon
-                  id={icon}
-                  icon={iconComponent}
-                  className='column-header__icon'
-                  style={{ marginRight: '8px' }}
-                />
-              )}
-              {title}
-            </button>
-
-            {/* 오른쪽 (50%): 카모마일 게시판 드롭다운 (커스텀 구현) */}
-            {icon === 'home' && boardItems.length > 0 && (
-              <div ref={dropdownRef} style={{ flex: 1, display: 'flex', position: 'relative' }}>
+{/* 타이틀 및 게시판 드롭다운 영역을 감싸는 래퍼 컨테이너 */}
+            <div style={{ display: 'flex', width: '100%' }}>
+              
+              {/* 왼쪽: 타이틀 영역 (main 브랜치의 조건부 렌더링 + 카모마일 스타일 반영) */}
+              {onClick ? (
                 <button
+                  onClick={handleTitleClick}
+                  className='column-header__title'
                   type='button'
-                  onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(!boardMenuOpen); }}
-                  style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+                  id={getColumnSkipLinkId(columnIndex)}
+                  style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRight: boardItems && boardItems.length > 0 ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
                 >
-                  게시판
-                  <Icon
-                    id='arrow-drop-down'
-                    icon={ArrowDropDownIcon}
-                    className='column-header__board-icon'
-                    style={{
-                      marginRight: '8px', // 아이콘과 글자 사이 간격
-                      // 드롭다운이 열려 있을 때만 아이콘을 180도 회전시킵니다.
-                      transform: boardMenuOpen ? 'rotate(180deg)' : 'none',
-                      // 부드러운 회전 효과를 위한 트랜지션 (선택 사항)
-                      transition: 'transform 0.2s ease-in-out',
-                    }}
-                  />
+                  {titleContents}
                 </button>
+              ) : (
+                <span
+                  className='column-header__title'
+                  tabIndex={-1}
+                  id={getColumnSkipLinkId(columnIndex)}
+                  style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRight: boardItems && boardItems.length > 0 ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
+                >
+                  {titleContents}
+                </span>
+              )}
 
-                {/* 드롭다운 메뉴 본체 */}
-                {boardMenuOpen && (
-                  <div style={{ 
-                    position: 'absolute', 
-                    top: '100%', 
-                    left: 0, 
-                    width: '100%', 
-                    background: 'var(--color-bg-primary)', // 테마 기본 배경색
-                    border: '1px solid var(--color-border-primary)', // 테마 테두리
-                    borderRadius: '4px', 
-                    boxShadow: 'var(--dropdown-shadow)', // 테마 드롭다운 전용 그림자 적용!
-                    zIndex: 9999, 
-                    overflow: 'hidden', 
-                    marginTop: '4px' 
-                  }}>
-                    {boardItems.map((b: any, index: number) => (
-                      <button
-                        key={b.text}
-                        type="button"
-                        onClick={(e) => { 
-                          e.stopPropagation(); 
-                          setBoardMenuOpen(false); 
-                          b.action(); 
-                        }}
-                        style={{ 
-                          display: 'block', 
-                          width: '100%', 
-                          padding: '12px', 
-                          background: 'transparent', 
-                          border: 'none', 
-                          borderBottom: index === boardItems.length - 1 ? 'none' : '1px solid var(--color-border-primary)', // 마지막 줄은 선 제거
-                          color: 'var(--color-text-primary)', // 테마 글자색
-                          textAlign: 'center', 
-                          cursor: 'pointer', 
-                          fontSize: '14px',
-                          transition: 'background-color 0.1s ease-in-out' // 부드러운 호버 효과
-                        }}
-                        // 테마의 secondary 배경색으로 호버 효과 구현
-                        onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
-                        onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
-                      >
-                        {b.text}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+              {/* 오른쪽: 카모마일 게시판 드롭다운 (HEAD 브랜치의 커스텀 코드 유지) */}
+              {icon === 'home' && boardItems && boardItems.length > 0 && (
+                <div ref={dropdownRef} style={{ flex: 1, display: 'flex', position: 'relative' }}>
+                  <button
+                    type='button'
+                    onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(!boardMenuOpen); }}
+                    style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+                  >
+                    게시판
+                    <Icon
+                      id='arrow-drop-down'
+                      icon={ArrowDropDownIcon}
+                      className='column-header__board-icon'
+                      style={{
+                        marginRight: '8px',
+                        transform: boardMenuOpen ? 'rotate(180deg)' : 'none',
+                        transition: 'transform 0.2s ease-in-out',
+                      }}
+                    />
+                  </button>
+
+                  {/* 드롭다운 메뉴 본체 */}
+                  {boardMenuOpen && (
+                    <div style={{ 
+                      position: 'absolute', 
+                      top: '100%', 
+                      left: 0, 
+                      width: '100%', 
+                      background: 'var(--color-bg-primary)',
+                      border: '1px solid var(--color-border-primary)',
+                      borderRadius: '4px', 
+                      boxShadow: 'var(--dropdown-shadow)',
+                      zIndex: 9999, 
+                      overflow: 'hidden', 
+                      marginTop: '4px' 
+                    }}>
+                      {boardItems.map((b: any, index: number) => (
+                        <button
+                          key={b.text}
+                          type="button"
+                          onClick={(e) => { 
+                            e.stopPropagation(); 
+                            setBoardMenuOpen(false); 
+                            b.action(); 
+                          }}
+                          style={{ 
+                            display: 'block', 
+                            width: '100%', 
+                            padding: '12px', 
+                            background: 'transparent', 
+                            border: 'none', 
+                            borderBottom: index === boardItems.length - 1 ? 'none' : '1px solid var(--color-border-primary)',
+                            color: 'var(--color-text-primary)',
+                            textAlign: 'center', 
+                            cursor: 'pointer', 
+                            fontSize: '14px',
+                            transition: 'background-color 0.1s ease-in-out'
+                          }}
+                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
+                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                        >
+                          {b.text}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
         )}
 
         {!hasTitle && backButton}
