@@ -4,29 +4,27 @@ import { defineMessages, FormattedMessage, useIntl } from 'react-intl';
 
 import { Helmet } from 'react-helmet';
 import { useHistory, useLocation, useParams } from 'react-router';
+import { Link } from 'react-router-dom';
 
 import { openModal } from '@/mastodon/actions/modal';
-import { RelativeTimestamp } from '@/mastodon/components/relative_timestamp';
+import { useAccountHandle } from '@/mastodon/components/display_name/default';
 import ListAltIcon from '@/material-icons/400-24px/list_alt.svg?react';
 import ShareIcon from '@/material-icons/400-24px/share.svg?react';
 import type { ApiCollectionJSON } from 'mastodon/api_types/collections';
-import { Avatar } from 'mastodon/components/avatar';
+import { Callout } from 'mastodon/components/callout';
 import { Column } from 'mastodon/components/column';
 import { ColumnHeader } from 'mastodon/components/column_header';
-import {
-  DisplayName,
-  LinkedDisplayName,
-} from 'mastodon/components/display_name';
+import { DisplayName } from 'mastodon/components/display_name';
 import { IconButton } from 'mastodon/components/icon_button';
 import { Scrollable } from 'mastodon/components/scrollable_list/components';
-import { Tag } from 'mastodon/components/tags/tag';
 import { useAccount } from 'mastodon/hooks/useAccount';
-import { me } from 'mastodon/initial_state';
+import { domain, me } from 'mastodon/initial_state';
 import { fetchCollection } from 'mastodon/reducers/slices/collections';
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
 import { CollectionAccountsList } from './accounts_list';
 import { CollectionMenu } from './collection_menu';
+import { useConfirmRevoke } from './revoke_collection_inclusion_modal';
 import classes from './styles.module.scss';
 
 const messages = defineMessages({
@@ -40,89 +38,64 @@ const messages = defineMessages({
   },
 });
 
-const CollectionMetaData: React.FC<{
-  collection: ApiCollectionJSON;
-  extended?: boolean;
-}> = ({ collection, extended }) => {
+export const AuthorNote: React.FC<{ id: string }> = ({ id }) => {
+  const account = useAccount(id);
+  const authorHandle = useAccountHandle(account, domain);
+
+  if (!account) {
+    return null;
+  }
+
+  const author = (
+    <Link to={`/@${account.acct}`} data-hover-card-account={account.id}>
+      {authorHandle}
+    </Link>
+  );
+
   return (
-    <ul className={classes.metaList}>
+    <p className={classes.authorNote}>
       <FormattedMessage
-        id='collections.account_count'
-        defaultMessage='{count, plural, one {# account} other {# accounts}}'
-        values={{ count: collection.item_count }}
-        tagName='li'
-      />
-      {extended && (
-        <>
-          {collection.discoverable ? (
-            <FormattedMessage
-              id='collections.visibility_public'
-              defaultMessage='Public'
-              tagName='li'
-            />
-          ) : (
-            <FormattedMessage
-              id='collections.visibility_unlisted'
-              defaultMessage='Unlisted'
-              tagName='li'
-            />
-          )}
-          {collection.sensitive && (
-            <FormattedMessage
-              id='collections.sensitive'
-              defaultMessage='Sensitive'
-              tagName='li'
-            />
-          )}
-        </>
-      )}
-      <FormattedMessage
-        id='collections.last_updated_at'
-        defaultMessage='Last updated: {date}'
+        id='collections.by_account'
+        defaultMessage='by {account_handle}'
         values={{
-          date: <RelativeTimestamp timestamp={collection.updated_at} long />,
+          account_handle: author,
         }}
-        tagName='li'
       />
-    </ul>
+    </p>
   );
 };
 
-export const AuthorNote: React.FC<{ id: string; previewMode?: boolean }> = ({
-  id,
-  // When previewMode is enabled, your own display name
-  // will not be replaced with "you"
-  previewMode = false,
-}) => {
-  const account = useAccount(id);
-  const author = (
-    <span className={classes.displayNameWithAvatar}>
-      <Avatar size={18} account={account} />
-      {previewMode ? (
-        <DisplayName account={account} variant='simple' />
-      ) : (
-        <LinkedDisplayName displayProps={{ account, variant: 'simple' }} />
-      )}
-    </span>
-  );
-
-  const displayAsYou = id === me && !previewMode;
+export const RevokeControls: React.FC<{
+  collection: ApiCollectionJSON;
+}> = ({ collection }) => {
+  const authorAccount = useAccount(collection.account_id);
+  const confirmRevoke = useConfirmRevoke(collection);
 
   return (
-    <p className={previewMode ? classes.previewAuthorNote : classes.authorNote}>
-      {displayAsYou ? (
+    <Callout
+      title={
         <FormattedMessage
-          id='collections.detail.curated_by_you'
-          defaultMessage='Curated by you'
+          id='collections.detail.you_are_in_this_collection'
+          defaultMessage="You're featured in this collection"
         />
-      ) : (
+      }
+      primaryLabel={
         <FormattedMessage
-          id='collections.detail.curated_by_author'
-          defaultMessage='Curated by {author}'
-          values={{ author }}
+          id='collections.detail.revoke_inclusion'
+          defaultMessage='Remove me'
         />
-      )}
-    </p>
+      }
+      onPrimary={confirmRevoke}
+    >
+      <FormattedMessage
+        id='collections.detail.author_added_you_on_date'
+        defaultMessage='{author} added you on {date}'
+        values={{
+          author: <DisplayName account={authorAccount} variant='simple' />,
+          date: '{date}', // TODO: Data not yet provided by API
+        }}
+      />
+    </Callout>
   );
 };
 
@@ -130,9 +103,15 @@ const CollectionHeader: React.FC<{ collection: ApiCollectionJSON }> = ({
   collection,
 }) => {
   const intl = useIntl();
-  const { name, description, tag, account_id } = collection;
+  const { name, description, tag, account_id, items } = collection;
   const dispatch = useAppDispatch();
   const history = useHistory();
+
+  const isOwnCollection = account_id === me;
+  const currentUserIndex = items.findIndex(
+    (account) => account.account_id === me,
+  );
+  const isCurrentUserInCollection = !isOwnCollection && currentUserIndex > -1;
 
   const handleShare = useCallback(() => {
     dispatch(
@@ -156,14 +135,12 @@ const CollectionHeader: React.FC<{ collection: ApiCollectionJSON }> = ({
   }, [history, handleShare, isNewCollection, location.pathname]);
 
   return (
-    <div className={classes.header}>
+    <header className={classes.header}>
       <div className={classes.titleWithMenu}>
         <div className={classes.titleWrapper}>
-          {tag && (
-            // TODO: Make non-interactive tag component
-            <Tag name={tag.name} className={classes.tag} />
-          )}
+          {tag && <span className={classes.tag}>#{tag.name}</span>}
           <h2 className={classes.name}>{name}</h2>
+          <AuthorNote id={account_id} />
         </div>
         <div className={classes.headerButtonWrapper}>
           <IconButton
@@ -181,12 +158,8 @@ const CollectionHeader: React.FC<{ collection: ApiCollectionJSON }> = ({
         </div>
       </div>
       {description && <p className={classes.description}>{description}</p>}
-      <AuthorNote id={collection.account_id} />
-      <CollectionMetaData
-        extended={account_id === me}
-        collection={collection}
-      />
-    </div>
+      {isCurrentUserInCollection && <RevokeControls collection={collection} />}
+    </header>
   );
 };
 
