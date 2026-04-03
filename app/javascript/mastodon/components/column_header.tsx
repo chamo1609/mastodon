@@ -434,6 +434,7 @@ export const ColumnHeader: React.FC<Props> = ({
                 </div>
               )}
             </div>
+          </div>
         )}
 
         {!hasTitle && backButton}

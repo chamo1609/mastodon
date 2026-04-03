@@ -12,31 +12,6 @@ import { areCollectionsEnabled } from '../../collections/utils';
 
 import classes from './redesign.module.scss';
 
-export const AccountTabs: FC<{ acct: string }> = ({ acct }) => {
-  if (isRedesignEnabled()) {
-    return <RedesignTabs />;
-  }
-  return (
-    <div className='account__section-headline'>
-      {/* <NavLink exact to={`/@${acct}/featured`}>
-        <FormattedMessage id='account.featured' defaultMessage='Featured' />
-      </NavLink> */}
-      <NavLink exact to={`/@${acct}`}>
-        <FormattedMessage id='account.posts' defaultMessage='Posts' />
-      </NavLink>
-      <NavLink exact to={`/@${acct}/with_replies`}>
-        <FormattedMessage
-          id='account.posts_with_replies'
-          defaultMessage='Posts and replies'
-        />
-      </NavLink>
-      <NavLink exact to={`/@${acct}/media`}>
-        <FormattedMessage id='account.media' defaultMessage='Media' />
-      </NavLink>
-    </div>
-  );
-};
-
 const isActive: Required<NavLinkProps>['isActive'] = (match, location) =>
   match?.url === location.pathname ||
   (!!match?.url && location.pathname.startsWith(`${match.url}/tagged/`));
@@ -45,25 +20,33 @@ export const AccountTabs: FC = () => {
   const accountId = useAccountId();
   const account = useAccount(accountId);
 
+  // 계정 정보를 불러오지 못했을 경우
   if (!account) {
     return <hr className={classes.noTabs} />;
   }
 
   const { acct, show_featured, show_media } = account;
+  
+  // 보여줄 탭이 전혀 없는 경우
   if (!show_featured && !show_media) {
     return <hr className={classes.noTabs} />;
   }
 
   return (
     <div className={classes.tabs}>
+      {/* 기본 활동(게시물) 탭 */}
       <NavLink isActive={isActive} to={`/@${acct}`}>
         <FormattedMessage id='account.activity' defaultMessage='Activity' />
       </NavLink>
+
+      {/* 미디어 탭 (권한이 있을 때만 표시) */}
       {show_media && (
         <NavLink exact to={`/@${acct}/media`}>
           <FormattedMessage id='account.media' defaultMessage='Media' />
         </NavLink>
       )}
+
+      {/* 하이라이트/컬렉션 탭 (권한이 있을 때만 표시) */}
       {show_featured && (
         <NavLink exact to={`/@${acct}/featured`}>
           {areCollectionsEnabled() ? (
