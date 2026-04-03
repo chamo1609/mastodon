@@ -6,7 +6,7 @@ services:
     networks:
       - internal_network
     healthcheck:
-      test: ['CMD', 'pg_isready', '-U', 'postgres']
+      test: ['CMD', 'pg_isready', '-U', 'mastodon', '-d', 'mastodon_production']
     volumes:
       - ./postgres14:/var/lib/postgresql/data
     environment:
@@ -24,6 +24,30 @@ services:
       test: ['CMD', 'redis-cli', 'ping']
     volumes:
       - ./redis:/data
+
+  es:
+    profiles: ["search"]
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.14
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "cluster.name=es-mastodon"
+      - "discovery.type=single-node"
+      - "bootstrap.memory_lock=true"
+      - "xpack.security.enabled=false"
+    networks:
+      - internal_network
+    healthcheck:
+      test: ["CMD-SHELL", "curl --silent --fail localhost:9200/_cluster/health || exit 1"]
+    volumes:
+      - ./elasticsearch:/usr/share/elasticsearch/data
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
 
   # 개발 모드용 통합 WEB 서비스
   web:
