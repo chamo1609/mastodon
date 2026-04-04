@@ -91,9 +91,19 @@ body.in-chat-room {
   }
 }
 
-/* ---- 타임스탬프 디자인 ---- */
+.chat-nickname {
+  color: var(--color-text-primary);
+  opacity: 0.9;
+  
+  &:hover {
+    text-decoration: underline;
+    color: var(--color-text-primary);
+  }
+}
+
+/* 타임스탬프 디자인 */
 .chat-message-time {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: var(--color-text-muted);
   flex-shrink: 0;
   margin-bottom: 2px;
@@ -108,7 +118,6 @@ body.in-chat-room {
   margin: 20px 0;
   color: var(--color-text-muted);
   font-size: 0.85rem;
-  font-weight: 500;
   
   &::before, &::after {
     content: "";

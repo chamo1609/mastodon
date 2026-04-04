@@ -19,6 +19,7 @@ interface RouteParams {
   id: string;
 }
 
+// ---- 1. 개별 말풍선 컴포넌트 (ChatMessageBubble) ----
 const ChatMessageBubble: React.FC<{
   status: any;
   isMe: boolean;
@@ -37,7 +38,6 @@ const ChatMessageBubble: React.FC<{
   const [isRevealed, setIsRevealed] = useState(!hasSpoiler);
   const mediaAttachments = status.get('media_attachments');
 
-  // 말풍선 클릭 시 상세 페이지 이동
   const handleBubbleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
     const isInteractive = target.closest('a, button, input, label, img, video, .chat-poll-area, .media-gallery');
@@ -49,7 +49,6 @@ const ChatMessageBubble: React.FC<{
     }
   };
 
-  // 아바타 클릭 시 프로필 페이지 이동
   const handleAvatarClick = (e: React.MouseEvent) => {
     e.stopPropagation();
     const acct = account.get('acct');
@@ -58,80 +57,64 @@ const ChatMessageBubble: React.FC<{
 
   return (
     <React.Fragment>
+      {/* 2. 말풍선 본체 */}
       <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', marginBottom: '15px', alignItems: 'flex-start' }}>
-        
-        {/* 아바타 영역 (클릭 이벤트 적용) */}
         {!isMe && account && (
-          <div 
-            style={{ marginRight: '10px', cursor: 'pointer' }} 
-            onClick={handleAvatarClick}
-            title={account.get('display_name') || account.get('username')}
-          >
+          <div style={{ marginRight: '10px', cursor: 'pointer', flexShrink: 0 }} onClick={handleAvatarClick}>
             <Avatar account={account} size={32} />
           </div>
         )}
         
-        {/* 말풍선과 시간을 묶는 래퍼 */}
-        <div style={{ 
-          display: 'flex', 
-          flexDirection: isMe ? 'row-reverse' : 'row', 
-          alignItems: 'flex-end', 
-          gap: '6px', 
-          maxWidth: '85%' 
-        }}>
-          
-          {/* 말풍선 */}
-          <div 
-            className={`chat-bubble ${isMe ? 'chat-bubble--me' : 'chat-bubble--partner'}`}
-            onClick={handleBubbleClick}
-            style={{ cursor: 'pointer', flexShrink: 1, minWidth: 0 }} 
-          >
-            {hasSpoiler && (
-              <div style={{ 
-                display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px',
-                borderBottom: isRevealed ? '1px solid rgba(128, 128, 128, 0.3)' : 'none',
-                paddingBottom: isRevealed ? '8px' : '0'
-              }}>
-                <span style={{ fontWeight: 'bold' }}>{spoilerText}</span>
-                <button
-                  onClick={() => setIsRevealed(!isRevealed)}
-                  style={{
-                    background: 'rgba(128, 128, 128, 0.2)', border: 'none', borderRadius: '4px',
-                    padding: '4px 8px', cursor: 'pointer', color: 'inherit', fontSize: '0.85em', fontWeight: 'bold'
-                  }}
-                >
-                  {isRevealed ? '숨기기' : '더 보기'}
-                </button>
-              </div>
-            )}
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', maxWidth: '85%', minWidth: 0 }}>
+          {!isMe && account && (
+            <div className="chat-nickname" onClick={handleAvatarClick} style={{ cursor: 'pointer', marginBottom: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>
+              {account.get('display_name') || account.get('username')}
+            </div>
+          )}
 
-            {isRevealed && (
-              <>
-                {cleanHtml.length > 0 && (
-                  <div className="status__content" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
-                )}
-                {mediaAttachments && mediaAttachments.size > 0 && (
-                  <div style={{ borderRadius: '8px', overflow: 'hidden' }}>
-                    <MediaGallery media={mediaAttachments} height={200} />
-                  </div>
-                )}
-                {pollId && (
-                  <div className="chat-poll-area" style={{ marginTop: '5px' }}>
-                    <Poll pollId={pollId} status={status} />
-                  </div>
-                )}
-              </>
-            )}
+          <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', alignItems: 'flex-end', gap: '6px', width: '100%' }}>
+            <div className={`chat-bubble ${isMe ? 'chat-bubble--me' : 'chat-bubble--partner'}`} onClick={handleBubbleClick} style={{ cursor: 'pointer', flexShrink: 1, minWidth: 0 }}>
+              {hasSpoiler && (
+                <div style={{ 
+                  display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px',
+                  borderBottom: isRevealed ? '1px solid rgba(128, 128, 128, 0.3)' : 'none',
+                  paddingBottom: isRevealed ? '8px' : '0'
+                }}>
+                  <span style={{ fontWeight: 'bold' }}>{spoilerText}</span>
+                  <button
+                    onClick={() => setIsRevealed(!isRevealed)}
+                    style={{
+                      background: 'rgba(128, 128, 128, 0.2)', border: 'none', borderRadius: '4px',
+                      padding: '4px 8px', cursor: 'pointer', color: 'inherit', fontSize: '0.85em', fontWeight: 'bold'
+                    }}
+                  >
+                    {isRevealed ? '숨기기' : '더 보기'}
+                  </button>
+                </div>
+              )}
+
+              {isRevealed && (
+                <>
+                  {cleanHtml.length > 0 && <div className="status__content" dangerouslySetInnerHTML={{ __html: cleanHtml }} />}
+                  {mediaAttachments && mediaAttachments.size > 0 && (
+                    <div style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                      <MediaGallery media={mediaAttachments} height={200} />
+                    </div>
+                  )}
+                  {pollId && (
+                    <div className="chat-poll-area" style={{ marginTop: '5px' }}>
+                      <Poll pollId={pollId} status={status} />
+                    </div>
+                  )}
+                </>
+              )}
+            </div>
+            <span className="chat-message-time">{timeString}</span>
           </div>
-
-          {/* 시간 표시 */}
-          <span className="chat-message-time">
-            {timeString}
-          </span>
         </div>
       </div>
 
-      {/* 날짜 구분선 (column-reverse 구조이므로 시각적으로 말풍선 상단에 위치하게 됩니다) */}
+      {/* 1. 날짜 구분선 (column-reverse 특성상 아래에 배치해야 화면 최상단에 뜹니다) */}
       {showDateDivider && (
         <div className="chat-date-divider">
           <span>{dateString}</span>
@@ -141,6 +124,7 @@ const ChatMessageBubble: React.FC<{
   );
 };
 
+// ---- 2. 메인 채팅방 컴포넌트 (ChatRoom) ----
 const ChatRoom: React.FC = () => {
   const dispatch = useAppDispatch();
   const params = useParams<RouteParams>();
@@ -149,14 +133,10 @@ const ChatRoom: React.FC = () => {
   useEffect(() => {
     if (conversationId) {
       dispatch(expandConversationTimeline(conversationId));
-
       const syncInterval = setInterval(() => {
         dispatch(expandConversationTimeline(conversationId));
       }, 3000);
-
-      return () => {
-        clearInterval(syncInterval);
-      };
+      return () => clearInterval(syncInterval);
     }
   }, [dispatch, conversationId]);
 
@@ -176,11 +156,7 @@ const ChatRoom: React.FC = () => {
       return timeline.get('items')
         .map((id: string) => state.getIn(['statuses', id]))
         .filter((x: any) => !!x)
-        .sort((a: any, b: any) => {
-          const aId = a.get('id');
-          const bId = b.get('id');
-          return aId > bId ? -1 : (aId < bId ? 1 : 0);
-        });
+        .sort((a: any, b: any) => a.get('id') > b.get('id') ? -1 : 1);
     }
     return ImmutableList();
   });
@@ -196,33 +172,14 @@ const ChatRoom: React.FC = () => {
       statuses.forEach((status: any) => {
         const accountId = status.get('account');
         if (accountId && accountId !== me) partnerIds.add(accountId);
-        
-        const mentionsList = status.get('mentions');
-        if (mentionsList) {
-          mentionsList.forEach((m: any) => {
-            const mId = m.get('id');
-            if (mId && mId !== me) partnerIds.add(mId);
-          });
-        }
       });
     }
 
     if (partnerIds.size > 0) {
-      mStr = Array.from(partnerIds)
-        .map(id => accounts.getIn([id, 'acct']))
-        .filter(acct => acct)
-        .map(acct => `@${acct}`)
-        .join(' ');
-      
-      const names = Array.from(partnerIds)
-        .map(id => accounts.getIn([id, 'display_name']) || accounts.getIn([id, 'username']))
-        .filter(name => name);
-        
-      if (names.length > 0) {
-        pNames = names.join(', ');
-      }
+      mStr = Array.from(partnerIds).map(id => `@${accounts.getIn([id, 'acct'])}`).join(' ');
+      const names = Array.from(partnerIds).map(id => accounts.getIn([id, 'display_name']) || accounts.getIn([id, 'username']));
+      if (names.length > 0) pNames = names.join(', ');
     }
-
     return { partnerNames: pNames, mentionsStr: mStr };
   }, [currentConversation, statuses, accounts, me]);
 
@@ -236,43 +193,26 @@ const ChatRoom: React.FC = () => {
   }, []);
 
   useEffect(() => {
-    if (mentionsStr) {
-      (window as any).chatRoomMentions = `${mentionsStr} `;
-    }
-    if (statuses && statuses.size > 0) {
-      (window as any).chatRoomLastStatusId = statuses.first().get('id');
-    }
+    if (mentionsStr) (window as any).chatRoomMentions = `${mentionsStr} `;
+    if (statuses && statuses.size > 0) (window as any).chatRoomLastStatusId = statuses.first().get('id');
   }, [mentionsStr, statuses]);
 
   const getCleanedHtml = (html: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
-    const mentions = doc.querySelectorAll('.h-card');
-    
-    mentions.forEach(mention => {
+    doc.querySelectorAll('.h-card').forEach(mention => {
       let hasPrecedingText = false;
       let prev = mention.previousSibling;
-      
       while (prev) {
-        if (prev.nodeType === Node.TEXT_NODE && prev.textContent?.trim() !== '') {
-          hasPrecedingText = true;
-          break;
-        }
-        if (prev.nodeType === Node.ELEMENT_NODE) {
-          hasPrecedingText = true;
-          break;
-        }
+        if (prev.nodeType === Node.TEXT_NODE && prev.textContent?.trim() !== '') { hasPrecedingText = true; break; }
+        if (prev.nodeType === Node.ELEMENT_NODE) { hasPrecedingText = true; break; }
         prev = prev.previousSibling;
       }
-
       if (!hasPrecedingText) {
-        if (mention.nextSibling?.nodeType === Node.TEXT_NODE && mention.nextSibling.textContent?.trim() === '') {
-          mention.nextSibling.remove();
-        }
+        if (mention.nextSibling?.nodeType === Node.TEXT_NODE && mention.nextSibling.textContent?.trim() === '') mention.nextSibling.remove();
         mention.remove();
       }
     });
-
     return doc.body.innerHTML.trim();
   };
 
@@ -289,10 +229,8 @@ const ChatRoom: React.FC = () => {
             const pollData = status.get('poll');
             const pollId = pollData ? (typeof pollData === 'string' ? pollData : pollData.get('id')) : null;
             
-            // 날짜 및 시간 계산 로직
             const createdAt = status.get('created_at');
             const dateObj = new Date(createdAt);
-            
             const timeString = dateObj.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
             const dateString = dateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
 
@@ -300,14 +238,10 @@ const ChatRoom: React.FC = () => {
             let showDateDivider = false;
 
             if (nextStatus) {
-              const nextDateObj = new Date(nextStatus.get('created_at'));
-              const nextDateString = nextDateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
-              
-              if (dateString !== nextDateString) {
-                showDateDivider = true;
-              }
+              const nextDateString = new Date(nextStatus.get('created_at')).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+              if (dateString !== nextDateString) showDateDivider = true;
             } else {
-              showDateDivider = true;
+              showDateDivider = true; // 최초 메시지 상단 구분선 활성화
             }
 
             return (
