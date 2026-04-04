@@ -47,18 +47,21 @@ body.in-chat-room {
 
 /* 말풍선 공통 레이아웃 */
 .chat-bubble {
-  max-width: 70%;
   padding: 10px;
   display: flex;
   flex-direction: column;
   gap: 10px;
+  
+  /* 내부 텍스트 래핑 처리 */
+  word-wrap: break-word;
+  word-break: break-all;
+  overflow-wrap: break-word;
 
-  /* 마스토돈 기본 status 컴포넌트의 텍스트 색상 간섭 방지 */
   .status__content, .status__content p {
     color: inherit !important;
+    margin: 0;
   }
   
-  /* CW 토글 버튼 영역 색상 상속 */
   button {
     color: inherit;
   }
@@ -85,5 +88,32 @@ body.in-chat-room {
 
   &:hover {
     background-color: var(--color-bg-tertiary);
+  }
+}
+
+/* ---- 타임스탬프 디자인 ---- */
+.chat-message-time {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  margin-bottom: 2px;
+  white-space: nowrap;
+}
+
+/* ---- 날짜 구분선 디자인 ---- */
+.chat-date-divider {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 20px 0;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  
+  &::before, &::after {
+    content: "";
+    flex: 1;
+    border-bottom: 1px solid var(--color-border-primary);
+    margin: 0 15px;
   }
 }

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { useParams, useHistory } from 'react-router-dom'; // useHistory 추가
+import { useParams, useHistory } from 'react-router-dom';
 import { List as ImmutableList } from 'immutable';
 
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
@@ -19,14 +19,16 @@ interface RouteParams {
   id: string;
 }
 
-// ---- 개별 말풍선 상태를 관리하는 하위 컴포넌트 ----
 const ChatMessageBubble: React.FC<{
   status: any;
   isMe: boolean;
   account: any;
   cleanHtml: string;
   pollId: string | null;
-}> = ({ status, isMe, account, cleanHtml, pollId }) => {
+  timeString: string;
+  dateString: string;
+  showDateDivider: boolean;
+}> = ({ status, isMe, account, cleanHtml, pollId, timeString, dateString, showDateDivider }) => {
   const history = useHistory();
   
   const spoilerText = status.get('spoiler_text');
@@ -35,11 +37,9 @@ const ChatMessageBubble: React.FC<{
   const [isRevealed, setIsRevealed] = useState(!hasSpoiler);
   const mediaAttachments = status.get('media_attachments');
 
-  // 클릭 이벤트 핸들러 추가
+  // 말풍선 클릭 시 상세 페이지 이동
   const handleBubbleClick = (e: React.MouseEvent) => {
     const target = e.target as HTMLElement;
-    
-    // 클릭된 요소가 상호작용 가능한 컴포넌트 내부인지 확인하여 우선순위를 보장합니다.
     const isInteractive = target.closest('a, button, input, label, img, video, .chat-poll-area, .media-gallery');
 
     if (!isInteractive) {
@@ -49,77 +49,97 @@ const ChatMessageBubble: React.FC<{
     }
   };
 
+  // 아바타 클릭 시 프로필 페이지 이동
+  const handleAvatarClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    const acct = account.get('acct');
+    history.push(`/@${acct}`);
+  };
+
   return (
-    <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', marginBottom: '15px' }}>
-      {!isMe && account && (
-        <div style={{ marginRight: '10px' }}>
-          <Avatar account={account} size={32} />
-        </div>
-      )}
-      
-      <div 
-        className={`chat-bubble ${isMe ? 'chat-bubble--me' : 'chat-bubble--partner'}`}
-        onClick={handleBubbleClick}
-        style={{ cursor: 'pointer' }} // 클릭 가능한 요소임을 나타냄
-      >
+    <React.Fragment>
+      <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', marginBottom: '15px', alignItems: 'flex-start' }}>
         
-        {/* CW 경고문 및 토글 버튼 */}
-        {hasSpoiler && (
-          <div style={{ 
-            display: 'flex', 
-            flexDirection: 'column', 
-            alignItems: 'flex-start',
-            gap: '8px',
-            borderBottom: isRevealed ? '1px solid rgba(128, 128, 128, 0.3)' : 'none',
-            paddingBottom: isRevealed ? '8px' : '0'
-          }}>
-            <span style={{ fontWeight: 'bold' }}>{spoilerText}</span>
-            <button
-              onClick={() => setIsRevealed(!isRevealed)}
-              style={{
-                background: 'rgba(128, 128, 128, 0.2)',
-                border: 'none',
-                borderRadius: '4px',
-                padding: '4px 8px',
-                cursor: 'pointer',
-                color: 'inherit',
-                fontSize: '0.85em',
-                fontWeight: 'bold'
-              }}
-            >
-              {isRevealed ? '숨기기' : '더 보기'}
-            </button>
+        {/* 아바타 영역 (클릭 이벤트 적용) */}
+        {!isMe && account && (
+          <div 
+            style={{ marginRight: '10px', cursor: 'pointer' }} 
+            onClick={handleAvatarClick}
+            title={account.get('display_name') || account.get('username')}
+          >
+            <Avatar account={account} size={32} />
           </div>
         )}
-
-        {/* 본문, 미디어, 투표 */}
-        {isRevealed && (
-          <>
-            {cleanHtml.length > 0 && (
-              <div 
-                className="status__content" 
-                dangerouslySetInnerHTML={{ __html: cleanHtml }} 
-              />
-            )}
-
-            {mediaAttachments && mediaAttachments.size > 0 && (
-              <div style={{ borderRadius: '8px', overflow: 'hidden' }}>
-                <MediaGallery media={mediaAttachments} height={200} />
+        
+        {/* 말풍선과 시간을 묶는 래퍼 */}
+        <div style={{ 
+          display: 'flex', 
+          flexDirection: isMe ? 'row-reverse' : 'row', 
+          alignItems: 'flex-end', 
+          gap: '6px', 
+          maxWidth: '85%' 
+        }}>
+          
+          {/* 말풍선 */}
+          <div 
+            className={`chat-bubble ${isMe ? 'chat-bubble--me' : 'chat-bubble--partner'}`}
+            onClick={handleBubbleClick}
+            style={{ cursor: 'pointer', flexShrink: 1, minWidth: 0 }} 
+          >
+            {hasSpoiler && (
+              <div style={{ 
+                display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '8px',
+                borderBottom: isRevealed ? '1px solid rgba(128, 128, 128, 0.3)' : 'none',
+                paddingBottom: isRevealed ? '8px' : '0'
+              }}>
+                <span style={{ fontWeight: 'bold' }}>{spoilerText}</span>
+                <button
+                  onClick={() => setIsRevealed(!isRevealed)}
+                  style={{
+                    background: 'rgba(128, 128, 128, 0.2)', border: 'none', borderRadius: '4px',
+                    padding: '4px 8px', cursor: 'pointer', color: 'inherit', fontSize: '0.85em', fontWeight: 'bold'
+                  }}
+                >
+                  {isRevealed ? '숨기기' : '더 보기'}
+                </button>
               </div>
             )}
 
-            {pollId && (
-              <div className="chat-poll-area" style={{ marginTop: '5px' }}>
-                <Poll pollId={pollId} status={status} />
-              </div>
+            {isRevealed && (
+              <>
+                {cleanHtml.length > 0 && (
+                  <div className="status__content" dangerouslySetInnerHTML={{ __html: cleanHtml }} />
+                )}
+                {mediaAttachments && mediaAttachments.size > 0 && (
+                  <div style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                    <MediaGallery media={mediaAttachments} height={200} />
+                  </div>
+                )}
+                {pollId && (
+                  <div className="chat-poll-area" style={{ marginTop: '5px' }}>
+                    <Poll pollId={pollId} status={status} />
+                  </div>
+                )}
+              </>
             )}
-          </>
-        )}
+          </div>
+
+          {/* 시간 표시 */}
+          <span className="chat-message-time">
+            {timeString}
+          </span>
+        </div>
       </div>
-    </div>
+
+      {/* 날짜 구분선 (column-reverse 구조이므로 시각적으로 말풍선 상단에 위치하게 됩니다) */}
+      {showDateDivider && (
+        <div className="chat-date-divider">
+          <span>{dateString}</span>
+        </div>
+      )}
+    </React.Fragment>
   );
 };
-// --------------------------------------------------------
 
 const ChatRoom: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -262,15 +282,34 @@ const ChatRoom: React.FC = () => {
         <ColumnHeader showBackButton title={partnerNames} />
         
         <div className="chat-messages-area" style={{ flex: 1, overflowY: 'auto', padding: '20px', display: 'flex', flexDirection: 'column-reverse' }}>
-          {statuses.map((status: any) => {
+          {statuses.map((status: any, index: number) => {
             const isMe = status.get('account') === me;
             const account = accounts.get(status.get('account'));
-            
             const cleanHtml = getCleanedHtml(status.get('contentHtml') || '');
-            
             const pollData = status.get('poll');
             const pollId = pollData ? (typeof pollData === 'string' ? pollData : pollData.get('id')) : null;
             
+            // 날짜 및 시간 계산 로직
+            const createdAt = status.get('created_at');
+            const dateObj = new Date(createdAt);
+            
+            const timeString = dateObj.toLocaleTimeString('ko-KR', { hour: 'numeric', minute: '2-digit' });
+            const dateString = dateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+
+            const nextStatus = statuses.get(index + 1);
+            let showDateDivider = false;
+
+            if (nextStatus) {
+              const nextDateObj = new Date(nextStatus.get('created_at'));
+              const nextDateString = nextDateObj.toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
+              
+              if (dateString !== nextDateString) {
+                showDateDivider = true;
+              }
+            } else {
+              showDateDivider = true;
+            }
+
             return (
               <ChatMessageBubble 
                 key={status.get('id')}
@@ -279,16 +318,15 @@ const ChatRoom: React.FC = () => {
                 account={account}
                 cleanHtml={cleanHtml}
                 pollId={pollId}
+                timeString={timeString}
+                dateString={dateString}
+                showDateDivider={showDateDivider}
               />
             );
           })}
         </div>
 
-        <div className="chat-compose-area" style={{ 
-          flexShrink: 0, 
-          borderTop: '1px solid var(--color-border-primary)', 
-          backgroundColor: 'var(--color-bg-primary)' 
-        }}>
+        <div className="chat-compose-area" style={{ flexShrink: 0, borderTop: '1px solid var(--color-border-primary)', backgroundColor: 'var(--color-bg-primary)' }}>
           <ComposeFormContainer />
         </div>
       </div>
