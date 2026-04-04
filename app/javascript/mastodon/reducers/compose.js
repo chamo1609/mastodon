@@ -53,6 +53,8 @@ import {
   COMPOSE_CHANGE_MEDIA_ORDER,
   COMPOSE_SET_STATUS,
   COMPOSE_FOCUS,
+  COMPOSE_CHAT_ROOM_SET,   // 추가
+  COMPOSE_CHAT_ROOM_CLEAR, // 추가
 } from '../actions/compose';
 import { REDRAFT } from '../actions/statuses';
 import { STORE_HYDRATE } from '../actions/store';
@@ -98,6 +100,9 @@ const initialState = ImmutableMap({
   quote_policy: 'public',
   default_quote_policy: 'public', // Set in hydration.
   fetching_link: null,
+
+  chat_room_mentions: null,
+  chat_room_last_status_id: null,
 });
 
 const initialPoll = ImmutableMap({
@@ -367,6 +372,16 @@ export const composeReducer = (state = initialState, action) => {
   }
 
   switch(action.type) {
+  case COMPOSE_CHAT_ROOM_SET:
+    return state.withMutations(map => {
+      map.set('chat_room_mentions', action.mentions);
+      map.set('chat_room_last_status_id', action.lastStatusId);
+    });
+  case COMPOSE_CHAT_ROOM_CLEAR:
+    return state.withMutations(map => {
+      map.set('chat_room_mentions', null);
+      map.set('chat_room_last_status_id', null);
+    });
   case STORE_HYDRATE:
     if (action.state.get('compose'))
       return hydrate(state, action.state.get('compose'));

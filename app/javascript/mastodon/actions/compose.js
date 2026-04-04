@@ -81,6 +81,9 @@ export const COMPOSE_CHANGE_MEDIA_ORDER       = 'COMPOSE_CHANGE_MEDIA_ORDER';
 export const COMPOSE_SET_STATUS = 'COMPOSE_SET_STATUS';
 export const COMPOSE_FOCUS = 'COMPOSE_FOCUS';
 
+export const COMPOSE_CHAT_ROOM_SET = 'COMPOSE_CHAT_ROOM_SET';
+export const COMPOSE_CHAT_ROOM_CLEAR = 'COMPOSE_CHAT_ROOM_CLEAR';
+
 const messages = defineMessages({
   uploadErrorLimit: { id: 'upload_error.limit', defaultMessage: 'File upload limit exceeded.' },
   uploadErrorPoll:  { id: 'upload_error.poll', defaultMessage: 'File upload not allowed with polls.' },
@@ -190,13 +193,26 @@ export function directCompose(account) {
   };
 }
 
-export function submitCompose(successCallback) {
-  // 비동기 통신(await)을 사용하기 위해 async를 추가합니다.
-  return async function (dispatch, getState) {
-    // 1. 본문을 담는 변수(status)
-    let status   = getState().getIn(['compose', 'text'], '');
+export function setChatRoomState(mentions, lastStatusId) {
+  return {
+    type: COMPOSE_CHAT_ROOM_SET,
+    mentions,
+    lastStatusId,
+  };
+}
 
-    // --- 카모마일 에디션 게시판 해시태그 자동 첨부 로직 시작 ---
+export function clearChatRoomState() {
+  return {
+    type: COMPOSE_CHAT_ROOM_CLEAR,
+  };
+}
+
+export function submitCompose(successCallback) {
+  // 전송 직전 검증을 위해 비동기(async) 함수로 선언합니다.
+  return async function (dispatch, getState) { 
+    let status = getState().getIn(['compose', 'text'], '');
+
+    // --- 카모마일 에디션 게시판 해시태그 자동 첨부 로직 ---
     const activeBoardTag = sessionStorage.getItem('chamomile_board');
     if (activeBoardTag) {
       const boards = getState().getIn(['meta', 'chamomile_boards']);
@@ -207,45 +223,41 @@ export function submitCompose(successCallback) {
         status = status.trim().length > 0 ? `${status}\n\n#${activeBoardTag}` : `#${activeBoardTag}`;
       }
     }
-    // --- 카모마일 로직 끝 ---
 
-    // 2. 서버로 전송할 답글 ID와 가시성 변수 추출
     let in_reply_to_id = getState().getIn(['compose', 'in_reply_to']);
     let visibility = getState().getIn(['compose', 'privacy']);
 
-    // --- 채팅방(DM) 전송 가로채기 로직 시작 ---
-    if (window.chatRoomMentions) {
-      // 멘션이 중복으로 들어가는 것을 방지하고, 없으면 강제로 앞에 붙입니다.
-      if (!status.includes(window.chatRoomMentions.trim())) {
-        status = window.chatRoomMentions + status;
+    // Redux 스토어에서 채팅방 정보를 가져옵니다 (window 전역 변수 사용 안 함)
+    const chatRoomMentions = getState().getIn(['compose', 'chat_room_mentions']);
+    let chatRoomLastStatusId = getState().getIn(['compose', 'chat_room_last_status_id']);
+
+    // --- 채팅방 전송 가로채기 및 타래 무결성 검증 ---
+    if (chatRoomMentions) {
+      if (!status.includes(chatRoomMentions.trim())) {
+        status = chatRoomMentions + status;
       }
-      
-      // 무조건 다이렉트 메시지로 전환
       visibility = 'direct';
       
-      if (window.chatRoomLastStatusId) {
-        in_reply_to_id = window.chatRoomLastStatusId;
+      if (chatRoomLastStatusId) {
+        in_reply_to_id = chatRoomLastStatusId;
 
-        // [핵심] 타래 꼬임(레이스 컨디션) 방지를 위한 최신 툿 탐색
         try {
-          // 전송 직전, 타래의 최신 상태를 서버에 물어봅니다.
-          const response = await api().get(`/api/v1/statuses/${window.chatRoomLastStatusId}/context`);
+          const response = await api().get(`/api/v1/statuses/${chatRoomLastStatusId}/context`);
           const descendants = response.data.descendants;
 
           if (descendants && descendants.length > 0) {
-            // 다른 사람이 방금 단 답글이 있다면, 그 답글 중 가장 마지막 요소의 ID를 부모로 삼습니다.
             in_reply_to_id = descendants[descendants.length - 1].id;
-            // 다음번 전송 기준점을 위해 전역 변수도 최신화해 둡니다.
-            window.chatRoomLastStatusId = in_reply_to_id;
+            
+            // 다음 전송을 위해 스토어의 ID도 즉각 갱신합니다.
+            dispatch(setChatRoomState(chatRoomMentions, in_reply_to_id));
           }
         } catch (error) {
-          console.error('최신 툿 컨텍스트 조회 실패, 기존 ID로 전송합니다:', error);
+          console.error('채팅방 타래 검증 실패. 캐시된 ID를 사용합니다:', error);
         }
       }
     }
-    // --- 채팅방 전송 가로채기 로직 끝 ---
 
-    const media    = getState().getIn(['compose', 'media_attachments']);
+    const media = getState().getIn(['compose', 'media_attachments']);
     const statusId = getState().getIn(['compose', 'id'], null);
     const hasQuote = !!getState().getIn(['compose', 'quoted_status_id']);
     const spoiler_text = getState().getIn(['compose', 'spoiler']) ? getState().getIn(['compose', 'spoiler_text'], '') : '';
@@ -258,7 +270,6 @@ export function submitCompose(successCallback) {
         message: messages.blankPostError,
       }));
       dispatch(focusCompose());
-
       return;
     }
 
@@ -268,11 +279,9 @@ export function submitCompose(successCallback) {
     if (statusId !== null) {
       media_attributes = media.map(item => {
         let focus;
-
         if (item.getIn(['meta', 'focus'])) {
           focus = `${item.getIn(['meta', 'focus', 'x']).toFixed(2)},${item.getIn(['meta', 'focus', 'y']).toFixed(2)}`;
         }
-
         return {
           id: item.get('id'),
           description: item.get('description'),
@@ -287,11 +296,11 @@ export function submitCompose(successCallback) {
       data: {
         status,
         spoiler_text,
-        in_reply_to_id: in_reply_to_id, // 갱신된 ID가 들어갑니다.
+        in_reply_to_id: in_reply_to_id, // 검증이 끝난 최종 ID
         media_ids: media.map(item => item.get('id')),
         media_attributes,
         sensitive: getState().getIn(['compose', 'sensitive']),
-        visibility: visibility, // 강제 전환된 다이렉트 속성이 들어갑니다.
+        visibility: visibility,
         poll: getState().getIn(['compose', 'poll'], null),
         language: getState().getIn(['compose', 'language']),
         quoted_status_id: getState().getIn(['compose', 'quoted_status_id']),
@@ -313,7 +322,6 @@ export function submitCompose(successCallback) {
 
       const insertIfOnline = timelineId => {
         const timeline = getState().getIn(['timelines', timelineId]);
-
         if (timeline && timeline.get('items').size > 0 && timeline.getIn(['items', 0]) !== null && timeline.get('online')) {
           dispatch(updateTimeline(timelineId, { ...response.data }));
         }

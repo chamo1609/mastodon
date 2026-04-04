@@ -519,4 +519,4 @@ private
   def trigger_update_webhooks
     TriggerWebhookWorker.perform_async('status.updated', 'Status', id) if local?
   end
-end # <-- 이 end가 class Status를 닫아주는 아주 중요한 친구입니다!
+end

@@ -2,24 +2,25 @@
 
 # 0. 배포 시 .env.production으로 변경
 ENV_FILE=".env"
+GUIDE="https://postype.com/@chamomile/todo"
 
 echo "========================================"
 echo " 카모마일 에디션 설치 매니저"
+echo " 설치 가이드: $GUIDE"
 echo "========================================"
 
 # 1. .env.production 존재 여부 체크
 if [ ! -f "$ENV_FILE" ]; then
   echo "설정 파일($ENV_FILE)을 찾을 수 없습니다."
   echo "----------------------------------------"
-  echo "카모마일 에디션 설치 가이드: https://postype.com/@chamomile/todo"
+  echo "카모마일 에디션 설치 가이드: $GUIDE"
   echo "----------------------------------------"
   exit 1
 fi
 
 # 2. 사용자에게 Elasticsearch 활성화 여부 묻기
-# (사용자가 파일을 열어 ES_ENABLED를 직접 수정하는 번거로움을 스크립트가 대신 처리합니다.)
 while true; do
-  read -p "검색 엔진(Elasticsearch)을 활성화하시겠습니까? (y/n): " yn
+  read -p "고급 검색 엔진(Elasticsearch)을 활성화하시겠습니까? (y/n): " yn
   case $yn in
     [Yy]* ) 
       ES_ENABLED="true"

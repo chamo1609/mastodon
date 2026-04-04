@@ -15,6 +15,8 @@ import { Poll } from 'mastodon/components/poll';
 
 import './chat_room.scss';
 
+import { setChatRoomState, clearChatRoomState } from 'mastodon/actions/compose';
+
 interface RouteParams {
   id: string;
 }
@@ -183,19 +185,25 @@ const ChatRoom: React.FC = () => {
     return { partnerNames: pNames, mentionsStr: mStr };
   }, [currentConversation, statuses, accounts, me]);
 
+  // 1. 마운트/언마운트 시 CSS 클래스 및 채팅 상태 해제
   useEffect(() => {
     document.body.classList.add('in-chat-room');
     return () => {
       document.body.classList.remove('in-chat-room');
-      (window as any).chatRoomMentions = null;
-      (window as any).chatRoomLastStatusId = null;
+      // 컴포넌트가 화면에서 사라지면 Redux 스토어의 채팅 상태도 제거합니다.
+      dispatch(clearChatRoomState()); 
     };
-  }, []);
+  }, [dispatch]);
 
+  // 2. 상대방 정보나 최신 툿이 업데이트될 때마다 Redux 스토어 갱신
   useEffect(() => {
-    if (mentionsStr) (window as any).chatRoomMentions = `${mentionsStr} `;
-    if (statuses && statuses.size > 0) (window as any).chatRoomLastStatusId = statuses.first().get('id');
-  }, [mentionsStr, statuses]);
+    const lastId = statuses && statuses.size > 0 ? statuses.first().get('id') : null;
+    
+    // 조건이 충족될 때만 스토어에 세팅합니다.
+    if (mentionsStr || lastId) {
+      dispatch(setChatRoomState(`${mentionsStr} `, lastId));
+    }
+  }, [mentionsStr, statuses, dispatch]);
 
   const getCleanedHtml = (html: string) => {
     const parser = new DOMParser();
