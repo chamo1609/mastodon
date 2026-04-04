@@ -157,7 +157,29 @@ const ChatRoom: React.FC = () => {
     if (timeline && timeline.get('items')) {
       return timeline.get('items')
         .map((id: string) => state.getIn(['statuses', id]))
-        .filter((x: any) => !!x)
+        .filter((status: any) => {
+          // 1. 상태가 존재하지 않으면 제외 (방어 로직)
+          if (!status) return false;
+
+          // 2. 접근 권한 필터링 로직
+          const visibility = status.get('visibility');
+          
+          // 다이렉트 메시지(DM)인 경우에만 권한을 엄격하게 검증합니다.
+          if (visibility === 'direct') {
+            const authorId = status.get('account');
+            const mentions = status.get('mentions');
+            
+            const isAuthor = authorId === me;
+            const isMentioned = mentions && mentions.some((m: any) => m.get('id') === me);
+
+            // 내가 쓴 글도 아니고, 내가 멘션된 글도 아니라면 화면에서 완전히 숨깁니다.
+            if (!isAuthor && !isMentioned) {
+              return false;
+            }
+          }
+
+          return true;
+        })
         .sort((a: any, b: any) => a.get('id') > b.get('id') ? -1 : 1);
     }
     return ImmutableList();
