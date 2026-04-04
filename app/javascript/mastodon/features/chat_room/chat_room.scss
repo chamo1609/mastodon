@@ -10,15 +10,24 @@ body.in-chat-room {
     background: transparent !important;
     border: none !important;
     padding: 0 !important;
+    
+    /* 자식 요소의 절대 위치 고정을 위한 기준점 설정 */
+    position: relative !important;
+    overflow: hidden !important; 
   }
 }
 
 /* 전체를 하나로 묶는 통합 박스 */
 .chat-room-unified-box {
+  /* 무한정 늘어나는 것을 막기 위해 상하좌우 끝단에 물리적으로 고정 */
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  
   display: flex;
   flex-direction: column;
-  flex: 1;
-  height: 100%;
   border: 1px solid var(--color-border-primary);
   border-radius: 0 0 4px 4px !important;
   overflow: hidden; 
@@ -33,5 +42,48 @@ body.in-chat-room {
   .chat-compose-area {
     border-top: 1px solid var(--color-border-primary);
     background: var(--color-bg-primary);
+  }
+}
+
+/* 말풍선 공통 레이아웃 */
+.chat-bubble {
+  max-width: 70%;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  /* 마스토돈 기본 status 컴포넌트의 텍스트 색상 간섭 방지 */
+  .status__content, .status__content p {
+    color: inherit !important;
+  }
+  
+  /* CW 토글 버튼 영역 색상 상속 */
+  button {
+    color: inherit;
+  }
+}
+
+/* 내 말풍선 디자인 */
+.chat-bubble--me {
+  background-color: var(--color-bg-brand-base);
+  color: var(--color-text-on-brand-base);
+  border-radius: 12px 0px 12px 12px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-bg-brand-base-hover);
+  }
+}
+
+/* 상대방 말풍선 디자인 */
+.chat-bubble--partner {
+  background-color: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+  border-radius: 0px 12px 12px 12px;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: var(--color-bg-tertiary);
   }
 }

@@ -1,5 +1,5 @@
-import React, { useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import React, { useEffect, useMemo, useState } from 'react';
+import { useParams, useHistory } from 'react-router-dom'; // useHistory 추가
 import { List as ImmutableList } from 'immutable';
 
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
@@ -10,11 +10,116 @@ import { Avatar } from 'mastodon/components/avatar';
 import ComposeFormContainer from 'mastodon/features/compose/containers/compose_form_container';
 import { expandConversationTimeline } from 'mastodon/actions/conversations';
 
+import MediaGallery from 'mastodon/components/media_gallery';
+import { Poll } from 'mastodon/components/poll';
+
 import './chat_room.scss';
 
 interface RouteParams {
   id: string;
 }
+
+// ---- 개별 말풍선 상태를 관리하는 하위 컴포넌트 ----
+const ChatMessageBubble: React.FC<{
+  status: any;
+  isMe: boolean;
+  account: any;
+  cleanHtml: string;
+  pollId: string | null;
+}> = ({ status, isMe, account, cleanHtml, pollId }) => {
+  const history = useHistory();
+  
+  const spoilerText = status.get('spoiler_text');
+  const hasSpoiler = spoilerText && spoilerText.length > 0;
+  
+  const [isRevealed, setIsRevealed] = useState(!hasSpoiler);
+  const mediaAttachments = status.get('media_attachments');
+
+  // 클릭 이벤트 핸들러 추가
+  const handleBubbleClick = (e: React.MouseEvent) => {
+    const target = e.target as HTMLElement;
+    
+    // 클릭된 요소가 상호작용 가능한 컴포넌트 내부인지 확인하여 우선순위를 보장합니다.
+    const isInteractive = target.closest('a, button, input, label, img, video, .chat-poll-area, .media-gallery');
+
+    if (!isInteractive) {
+      const acct = account.get('acct');
+      const statusId = status.get('id');
+      history.push(`/@${acct}/${statusId}`);
+    }
+  };
+
+  return (
+    <div style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', marginBottom: '15px' }}>
+      {!isMe && account && (
+        <div style={{ marginRight: '10px' }}>
+          <Avatar account={account} size={32} />
+        </div>
+      )}
+      
+      <div 
+        className={`chat-bubble ${isMe ? 'chat-bubble--me' : 'chat-bubble--partner'}`}
+        onClick={handleBubbleClick}
+        style={{ cursor: 'pointer' }} // 클릭 가능한 요소임을 나타냄
+      >
+        
+        {/* CW 경고문 및 토글 버튼 */}
+        {hasSpoiler && (
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'flex-start',
+            gap: '8px',
+            borderBottom: isRevealed ? '1px solid rgba(128, 128, 128, 0.3)' : 'none',
+            paddingBottom: isRevealed ? '8px' : '0'
+          }}>
+            <span style={{ fontWeight: 'bold' }}>{spoilerText}</span>
+            <button
+              onClick={() => setIsRevealed(!isRevealed)}
+              style={{
+                background: 'rgba(128, 128, 128, 0.2)',
+                border: 'none',
+                borderRadius: '4px',
+                padding: '4px 8px',
+                cursor: 'pointer',
+                color: 'inherit',
+                fontSize: '0.85em',
+                fontWeight: 'bold'
+              }}
+            >
+              {isRevealed ? '숨기기' : '더 보기'}
+            </button>
+          </div>
+        )}
+
+        {/* 본문, 미디어, 투표 */}
+        {isRevealed && (
+          <>
+            {cleanHtml.length > 0 && (
+              <div 
+                className="status__content" 
+                dangerouslySetInnerHTML={{ __html: cleanHtml }} 
+              />
+            )}
+
+            {mediaAttachments && mediaAttachments.size > 0 && (
+              <div style={{ borderRadius: '8px', overflow: 'hidden' }}>
+                <MediaGallery media={mediaAttachments} height={200} />
+              </div>
+            )}
+
+            {pollId && (
+              <div className="chat-poll-area" style={{ marginTop: '5px' }}>
+                <Poll pollId={pollId} status={status} />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+    </div>
+  );
+};
+// --------------------------------------------------------
 
 const ChatRoom: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -24,10 +129,18 @@ const ChatRoom: React.FC = () => {
   useEffect(() => {
     if (conversationId) {
       dispatch(expandConversationTimeline(conversationId));
+
+      const syncInterval = setInterval(() => {
+        dispatch(expandConversationTimeline(conversationId));
+      }, 3000);
+
+      return () => {
+        clearInterval(syncInterval);
+      };
     }
   }, [dispatch, conversationId]);
 
-  const conversation = useAppSelector((state: any) =>
+  const currentConversation = useAppSelector((state: any) =>
     state.getIn(['conversations', 'items']).find((x: any) => x.get('id') === conversationId)
   );
 
@@ -52,50 +165,47 @@ const ChatRoom: React.FC = () => {
     return ImmutableList();
   });
 
-  // ---- [핵심 수정] 멘션 대상자 및 타이틀 강제 추출 로직 ----
-  let partnerNames = '대화';
-  let mentionsStr = '';
-  const partnerIds = new Set<string>();
+  const { partnerNames, mentionsStr } = useMemo(() => {
+    let pNames = '대화';
+    let mStr = '';
+    const partnerIds = new Set<string>();
 
-  // 1. conversation 객체가 있으면 거기서 추출
-  if (conversation) {
-    conversation.get('accounts').forEach((id: string) => partnerIds.add(id));
-  } 
-  // 2. 객체가 증발했다면 화면에 뜬 채팅 내역(statuses)에서 나와 대화 중인 상대방을 긁어모음
-  else if (statuses && statuses.size > 0) {
-    statuses.forEach((status: any) => {
-      const accountId = status.get('account');
-      if (accountId && accountId !== me) partnerIds.add(accountId);
-      
-      const mentionsList = status.get('mentions');
-      if (mentionsList) {
-        mentionsList.forEach((m: any) => {
-          const mId = m.get('id');
-          if (mId && mId !== me) partnerIds.add(mId);
-        });
-      }
-    });
-  }
-
-  // 추출된 상대방 ID를 기반으로 멘션 문자열과 헤더 이름을 구성
-  if (partnerIds.size > 0) {
-    mentionsStr = Array.from(partnerIds)
-      .map(id => accounts.getIn([id, 'acct']))
-      .filter(acct => acct)
-      .map(acct => `@${acct}`)
-      .join(' ');
-    
-    const names = Array.from(partnerIds)
-      .map(id => accounts.getIn([id, 'display_name']) || accounts.getIn([id, 'username']))
-      .filter(name => name);
-      
-    if (names.length > 0) {
-      partnerNames = names.join(', ');
+    if (currentConversation) {
+      currentConversation.get('accounts').forEach((id: string) => partnerIds.add(id));
+    } else if (statuses && statuses.size > 0) {
+      statuses.forEach((status: any) => {
+        const accountId = status.get('account');
+        if (accountId && accountId !== me) partnerIds.add(accountId);
+        
+        const mentionsList = status.get('mentions');
+        if (mentionsList) {
+          mentionsList.forEach((m: any) => {
+            const mId = m.get('id');
+            if (mId && mId !== me) partnerIds.add(mId);
+          });
+        }
+      });
     }
-  }
 
-  // ---- 분리된 useEffect (안정성 강화) ----
-  // 1. CSS 클래스와 변수 초기화는 마운트/언마운트 시에만 딱 한 번 실행
+    if (partnerIds.size > 0) {
+      mStr = Array.from(partnerIds)
+        .map(id => accounts.getIn([id, 'acct']))
+        .filter(acct => acct)
+        .map(acct => `@${acct}`)
+        .join(' ');
+      
+      const names = Array.from(partnerIds)
+        .map(id => accounts.getIn([id, 'display_name']) || accounts.getIn([id, 'username']))
+        .filter(name => name);
+        
+      if (names.length > 0) {
+        pNames = names.join(', ');
+      }
+    }
+
+    return { partnerNames: pNames, mentionsStr: mStr };
+  }, [currentConversation, statuses, accounts, me]);
+
   useEffect(() => {
     document.body.classList.add('in-chat-room');
     return () => {
@@ -105,7 +215,6 @@ const ChatRoom: React.FC = () => {
     };
   }, []);
 
-  // 2. 상태 변동 시 전역 변수만 조용히 갱신
   useEffect(() => {
     if (mentionsStr) {
       (window as any).chatRoomMentions = `${mentionsStr} `;
@@ -115,8 +224,6 @@ const ChatRoom: React.FC = () => {
     }
   }, [mentionsStr, statuses]);
 
-
-  // ---- 데이터 가공 함수 ----
   const getCleanedHtml = (html: string) => {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
@@ -161,26 +268,18 @@ const ChatRoom: React.FC = () => {
             
             const cleanHtml = getCleanedHtml(status.get('contentHtml') || '');
             
+            const pollData = status.get('poll');
+            const pollId = pollData ? (typeof pollData === 'string' ? pollData : pollData.get('id')) : null;
+            
             return (
-              <div key={status.get('id')} style={{ display: 'flex', flexDirection: isMe ? 'row-reverse' : 'row', marginBottom: '15px' }}>
-                {!isMe && account && (
-                  <div style={{ marginRight: '10px' }}>
-                    <Avatar account={account} size={32} />
-                  </div>
-                )}
-                <div style={{ 
-                  maxWidth: '70%', 
-                  backgroundColor: isMe ? 'var(--color-bg-brand-base)' : 'var(--color-bg-secondary)', 
-                  padding: '10px', 
-                  borderRadius: '8px' 
-                }}>
-                  <div 
-                    className="status__content" 
-                    style={{ color: isMe ? 'var(--color-text-on-brand-base)' : 'var(--color-text-primary)' }}
-                    dangerouslySetInnerHTML={{ __html: cleanHtml }} 
-                  />
-                </div>
-              </div>
+              <ChatMessageBubble 
+                key={status.get('id')}
+                status={status}
+                isMe={isMe}
+                account={account}
+                cleanHtml={cleanHtml}
+                pollId={pollId}
+              />
             );
           })}
         </div>
