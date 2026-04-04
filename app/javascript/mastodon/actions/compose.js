@@ -191,7 +191,8 @@ export function directCompose(account) {
 }
 
 export function submitCompose(successCallback) {
-  return function (dispatch, getState) {
+  // 비동기 통신(await)을 사용하기 위해 async를 추가합니다.
+  return async function (dispatch, getState) {
     // 1. 본문을 담는 변수(status)
     let status   = getState().getIn(['compose', 'text'], '');
 
@@ -214,11 +215,32 @@ export function submitCompose(successCallback) {
 
     // --- 채팅방(DM) 전송 가로채기 로직 시작 ---
     if (window.chatRoomMentions) {
-      status = window.chatRoomMentions + status;
+      // 멘션이 중복으로 들어가는 것을 방지하고, 없으면 강제로 앞에 붙입니다.
+      if (!status.includes(window.chatRoomMentions.trim())) {
+        status = window.chatRoomMentions + status;
+      }
+      
+      // 무조건 다이렉트 메시지로 전환
       visibility = 'direct';
       
       if (window.chatRoomLastStatusId) {
         in_reply_to_id = window.chatRoomLastStatusId;
+
+        // [핵심] 타래 꼬임(레이스 컨디션) 방지를 위한 최신 툿 탐색
+        try {
+          // 전송 직전, 타래의 최신 상태를 서버에 물어봅니다.
+          const response = await api().get(`/api/v1/statuses/${window.chatRoomLastStatusId}/context`);
+          const descendants = response.data.descendants;
+
+          if (descendants && descendants.length > 0) {
+            // 다른 사람이 방금 단 답글이 있다면, 그 답글 중 가장 마지막 요소의 ID를 부모로 삼습니다.
+            in_reply_to_id = descendants[descendants.length - 1].id;
+            // 다음번 전송 기준점을 위해 전역 변수도 최신화해 둡니다.
+            window.chatRoomLastStatusId = in_reply_to_id;
+          }
+        } catch (error) {
+          console.error('최신 툿 컨텍스트 조회 실패, 기존 ID로 전송합니다:', error);
+        }
       }
     }
     // --- 채팅방 전송 가로채기 로직 끝 ---
@@ -265,11 +287,11 @@ export function submitCompose(successCallback) {
       data: {
         status,
         spoiler_text,
-        in_reply_to_id: in_reply_to_id,
+        in_reply_to_id: in_reply_to_id, // 갱신된 ID가 들어갑니다.
         media_ids: media.map(item => item.get('id')),
         media_attributes,
         sensitive: getState().getIn(['compose', 'sensitive']),
-        visibility: visibility,
+        visibility: visibility, // 강제 전환된 다이렉트 속성이 들어갑니다.
         poll: getState().getIn(['compose', 'poll'], null),
         language: getState().getIn(['compose', 'language']),
         quoted_status_id: getState().getIn(['compose', 'quoted_status_id']),

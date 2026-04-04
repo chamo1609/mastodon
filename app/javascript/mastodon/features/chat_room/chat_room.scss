@@ -1,0 +1,37 @@
+body.in-chat-room {
+  /* 좌측 패널 글쓰기 폼 숨기기 (공간은 유지) */
+  .columns-area__panels__pane__inner .compose-form {
+    visibility: hidden !important;
+    pointer-events: none !important;
+  }
+
+  /* 마스토돈 기본 컬럼의 배경이나 테두리가 간섭하지 못하도록 제거 */
+  .column {
+    background: transparent !important;
+    border: none !important;
+    padding: 0 !important;
+  }
+}
+
+/* 전체를 하나로 묶는 통합 박스 */
+.chat-room-unified-box {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 100%;
+  border: 1px solid var(--color-border-primary);
+  border-radius: 0 0 4px 4px !important;
+  overflow: hidden; 
+  background: var(--color-bg-primary);
+
+  /* 메시지 영역 */
+  .chat-messages-area {
+    background: var(--color-bg-primary);
+  }
+
+  /* 하단 입력 영역 */
+  .chat-compose-area {
+    border-top: 1px solid var(--color-border-primary);
+    background: var(--color-bg-primary);
+  }
+}
