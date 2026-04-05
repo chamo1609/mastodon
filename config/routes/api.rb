@@ -330,6 +330,15 @@ namespace :api, format: false do
 
       resources :tags, only: [:index, :show, :update]
     end
+    # 북마크 폴더 기본 CRUD
+    resources :bookmark_folders, only: [:index, :create, :destroy]
+
+    # 특정 툿을 폴더에 추가하기 위한 라우팅
+    resources :statuses, only: [] do
+      member do
+        post :bookmark_folder, to: 'statuses/bookmark_folders#create'
+      end
+    end
   end
 
   namespace :v2 do

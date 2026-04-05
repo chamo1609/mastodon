@@ -123,6 +123,8 @@ class Account < ApplicationRecord
   enum :suspension_origin, { local: 0, remote: 1 }, prefix: true
   enum :id_scheme, { username_ap_id: 0, numeric_ap_id: 1 }
 
+  has_many :bookmark_folders, dependent: :destroy
+
   validates :username, presence: true
   validates_with UniqueUsernameValidator, if: -> { will_save_change_to_username? }
 

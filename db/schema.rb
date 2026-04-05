@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_03_26_112324) do
+ActiveRecord::Schema[8.1].define(version: 2026_04_05_031803) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -313,6 +313,25 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_112324) do
     t.string "uri"
     t.index ["account_id", "target_account_id"], name: "index_blocks_on_account_id_and_target_account_id", unique: true
     t.index ["target_account_id"], name: "index_blocks_on_target_account_id"
+  end
+
+  create_table "bookmark_folder_items", force: :cascade do |t|
+    t.bigint "bookmark_folder_id", null: false
+    t.datetime "created_at", null: false
+    t.bigint "status_id", null: false
+    t.datetime "updated_at", null: false
+    t.index ["bookmark_folder_id", "status_id"], name: "idx_unique_bookmark_folder_items", unique: true
+    t.index ["bookmark_folder_id"], name: "index_bookmark_folder_items_on_bookmark_folder_id"
+    t.index ["status_id"], name: "index_bookmark_folder_items_on_status_id"
+  end
+
+  create_table "bookmark_folders", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.datetime "created_at", null: false
+    t.string "name", null: false
+    t.integer "position", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_bookmark_folders_on_account_id"
   end
 
   create_table "bookmarks", force: :cascade do |t|
@@ -1481,6 +1500,9 @@ ActiveRecord::Schema[8.1].define(version: 2026_03_26_112324) do
   add_foreign_key "backups", "users", on_delete: :nullify
   add_foreign_key "blocks", "accounts", column: "target_account_id", name: "fk_9571bfabc1", on_delete: :cascade
   add_foreign_key "blocks", "accounts", name: "fk_4269e03e65", on_delete: :cascade
+  add_foreign_key "bookmark_folder_items", "bookmark_folders", on_delete: :cascade
+  add_foreign_key "bookmark_folder_items", "statuses", on_delete: :cascade
+  add_foreign_key "bookmark_folders", "accounts", on_delete: :cascade
   add_foreign_key "bookmarks", "accounts", on_delete: :cascade
   add_foreign_key "bookmarks", "statuses", on_delete: :cascade
   add_foreign_key "bulk_import_rows", "bulk_imports", on_delete: :cascade

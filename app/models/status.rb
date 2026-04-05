@@ -96,6 +96,7 @@ class Status < ApplicationRecord
   has_many :media_attachments, dependent: :nullify
   has_many :tagged_objects, dependent: :destroy
   has_many :quotes, foreign_key: 'quoted_status_id', inverse_of: :quoted_status, dependent: :nullify
+  has_many :bookmark_folder_items, dependent: :destroy
 
   # The `dependent` option is enabled by the initial `mentions` association declaration
   has_many :active_mentions, -> { active }, class_name: 'Mention', inverse_of: :status # rubocop:disable Rails/HasManyOrHasOneDependent
