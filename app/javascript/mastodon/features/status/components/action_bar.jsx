@@ -23,6 +23,8 @@ import { me, quickBoosting } from '../../../initial_state';
 import { BoostButton } from '@/mastodon/components/status/boost_button';
 import { quoteItemState, selectStatusState } from '@/mastodon/components/status/boost_button_utils';
 
+import { openModal } from 'mastodon/actions/modal';
+
 const messages = defineMessages({
   delete: { id: 'status.delete', defaultMessage: 'Delete' },
   redraft: { id: 'status.redraft', defaultMessage: 'Delete & re-draft' },
@@ -55,6 +57,7 @@ const messages = defineMessages({
   openOriginalPage: { id: 'account.open_original_page', defaultMessage: 'Open original page' },
   revokeQuote: { id: 'status.revoke_quote', defaultMessage: 'Remove my post from @{name}’s post' },
   quotePolicyChange: { id: 'status.quote_policy_change', defaultMessage: 'Change who can quote' },
+  bookmarkFolder: { id: 'status.add_to_bookmark_folder', defaultMessage: '북마크 폴더에 추가' },
 });
 
 const mapStateToProps = (state, { status }) => {
@@ -94,6 +97,7 @@ class ActionBar extends PureComponent {
     onPin: PropTypes.func,
     onEmbed: PropTypes.func,
     intl: PropTypes.object.isRequired,
+    dispatch: PropTypes.func.isRequired, // dispatch prop 추가
   };
 
   handleReplyClick = () => {
@@ -110,6 +114,14 @@ class ActionBar extends PureComponent {
 
   handleBookmarkClick = (e) => {
     this.props.onBookmark(this.props.status, e);
+  };
+
+  // 모달 호출을 위한 새 핸들러 추가
+  handleBookmarkFolderClick = () => {
+    this.props.dispatch(openModal({
+      modalType: 'BOOKMARK_FOLDER',
+      modalProps: { statusId: this.props.status.get('id') },
+    }));
   };
 
   handleDeleteClick = () => {
@@ -248,6 +260,9 @@ class ActionBar extends PureComponent {
     }
 
     if (signedIn) {
+      menu.push(null);
+
+      menu.push({ text: intl.formatMessage(messages.bookmarkFolder), action: this.handleBookmarkFolderClick });
       menu.push(null);
 
       if (writtenByMe) {

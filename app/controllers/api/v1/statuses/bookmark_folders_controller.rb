@@ -18,9 +18,23 @@ class Api::V1::Statuses::BookmarkFoldersController < Api::BaseController
     render json: @status, serializer: REST::StatusSerializer
   end
 
+  def destroy
+    folder = current_account.bookmark_folders.find(params[:folder_id])
+
+    # 1. 폴더와 툿의 연결 고리(BookmarkFolderItem)를 찾아 삭제
+    BookmarkFolderItem.where(
+      bookmark_folder: folder,
+      status: @status
+    ).destroy_all
+
+    # 툿의 최신 상태를 반환하여 프론트엔드가 업데이트하도록 함
+    render json: @status, serializer: REST::StatusSerializer
+  end
+
   private
 
   def set_status
-    @status = Status.find(params[:status_id])
+    # params[:status_id]를 params[:id]로 변경했습니다.
+    @status = Status.find(params[:id])
   end
 end

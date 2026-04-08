@@ -28,6 +28,7 @@ import { BoostButton } from '../status/boost_button';
 import { RemoveQuoteHint } from './remove_quote_hint';
 import { quoteItemState, selectStatusState } from '../status/boost_button_utils';
 
+import { openModal } from 'mastodon/actions/modal';
 
 const messages = defineMessages({
   delete: { id: 'status.delete', defaultMessage: 'Delete' },
@@ -64,6 +65,7 @@ const messages = defineMessages({
   openOriginalPage: { id: 'account.open_original_page', defaultMessage: 'Open original page' },
   revokeQuote: { id: 'status.revoke_quote', defaultMessage: 'Remove my post from @{name}’s post' },
   quotePolicyChange: { id: 'status.quote_policy_change', defaultMessage: 'Change who can quote' },
+  bookmarkFolder: { id: 'status.add_to_bookmark_folder', defaultMessage: '북마크 폴더에 추가' },
 });
 
 const mapStateToProps = (state, { status }) => {
@@ -108,6 +110,7 @@ class StatusActionBar extends ImmutablePureComponent {
     withCounters: PropTypes.bool,
     scrollKey: PropTypes.string,
     intl: PropTypes.object.isRequired,
+    dispatch: PropTypes.func.isRequired,
     ...WithRouterPropTypes,
   };
 
@@ -154,6 +157,13 @@ class StatusActionBar extends ImmutablePureComponent {
 
   handleBookmarkClick = () => {
     this.props.onBookmark(this.props.status);
+  };
+
+  handleBookmarkFolderClick = () => {
+    this.props.dispatch(openModal({
+      modalType: 'BOOKMARK_FOLDER',
+      modalProps: { statusId: this.props.status.get('id') },
+    }));
   };
 
   handleDeleteClick = () => {
@@ -295,12 +305,17 @@ class StatusActionBar extends ImmutablePureComponent {
     if (signedIn) {
       menu.push(null);
 
+      menu.push({ text: intl.formatMessage(messages.bookmarkFolder), action: this.handleBookmarkFolderClick });
+
       if (writtenByMe && pinnableStatus) {
-        menu.push({ text: intl.formatMessage(status.get('pinned') ? messages.unpin : messages.pin), action: this.handlePinClick });
         menu.push(null);
+        menu.push({ text: intl.formatMessage(status.get('pinned') ? messages.unpin : messages.pin), action: this.handlePinClick });
       }
 
       if (writtenByMe || withDismiss) {
+        if (!(writtenByMe && pinnableStatus)) {
+          menu.push(null);
+        }
         menu.push({ text: intl.formatMessage(mutingConversation ? messages.unmuteConversation : messages.muteConversation), action: this.handleConversationMuteClick });
         if (writtenByMe && !['private', 'direct'].includes(status.get('visibility'))) {
           menu.push({ text: intl.formatMessage(messages.quotePolicyChange), action: this.handleQuotePolicyChange });

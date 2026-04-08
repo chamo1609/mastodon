@@ -4,7 +4,7 @@ class StatusRelationshipsPresenter
   PINNABLE_VISIBILITIES = %w(public unlisted private).freeze
 
   attr_reader :reblogs_map, :favourites_map, :mutes_map, :pins_map,
-              :bookmarks_map, :filters_map, :attributes_map
+              :bookmarks_map, :bookmark_folders_map, :filters_map, :attributes_map
 
   def initialize(statuses, current_account_id = nil, **options)
     @current_account_id = current_account_id
@@ -19,6 +19,7 @@ class StatusRelationshipsPresenter
       @reblogs_map     = {}
       @favourites_map  = {}
       @bookmarks_map   = {}
+      @bookmark_folders_map = {} # 오타 교정 (bookmarks_folders_map -> bookmark_folders_map)
       @mutes_map       = {}
       @pins_map        = {}
       @attributes_map  = {}
@@ -34,6 +35,17 @@ class StatusRelationshipsPresenter
       @reblogs_map     = Status.reblogs_map(status_ids, current_account_id).merge(options[:reblogs_map] || {})
       @favourites_map  = Status.favourites_map(status_ids, current_account_id).merge(options[:favourites_map] || {})
       @bookmarks_map   = Status.bookmarks_map(status_ids, current_account_id).merge(options[:bookmarks_map] || {})
+
+      # ------------ 북마크 폴더 맵 데이터를 프리로드하는 부분 추가 ------------
+      folder_items = BookmarkFolderItem.joins(:bookmark_folder)
+                                       .where(bookmark_folders: { account_id: current_account_id })
+                                       .where(status_id: status_ids)
+
+      @bookmark_folders_map = folder_items.each_with_object(Hash.new { |h, k| h[k] = [] }) do |item, hash|
+        hash[item.status_id] << item.bookmark_folder_id
+      end
+      # ------------------------------------------------------------------------
+
       @mutes_map       = Status.mutes_map(conversation_ids, current_account_id).merge(options[:mutes_map] || {})
       @pins_map        = Status.pins_map(pinnable_status_ids, current_account_id).merge(options[:pins_map] || {})
       @attributes_map  = options[:attributes_map] || {}

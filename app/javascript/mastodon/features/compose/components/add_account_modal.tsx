@@ -1,7 +1,10 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { FormattedMessage } from 'react-intl';
+import classNames from 'classnames';
 import { Button } from 'mastodon/components/button';
 import { saveAccount } from '@/mastodon/utils/multi_account';
+
 import type { AccountData } from '@/mastodon/utils/multi_account';
 
 interface AddAccountModalProps {
@@ -16,6 +19,8 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({ onClose, onSuc
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (token.trim().length === 0) return;
+
     setIsLoading(true);
     setErrorText(null);
 
@@ -26,12 +31,12 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({ onClose, onSuc
       });
 
       if (!response.ok) {
-        throw new Error('토큰이 올바르지 않거나 권한이 없습니다. 다시 확인해 주세요.');
+        throw new Error('토큰이 올바르지 않거나 권한이 없습니다.');
       }
 
       const data = await response.json();
       
-      const newAccount = {
+      const newAccount: AccountData = {
         id: data.id,
         username: data.username,
         acct: data.acct,
@@ -49,127 +54,98 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({ onClose, onSuc
   };
 
   return createPortal(
-    <div style={overlayStyle}>
-      <div style={formContainerStyle}>
-        <div style={headerStyle}>
-          <h1 style={titleStyle}>새 계정 연결하기</h1>
+    /* 🚨 1. 마스토돈 순정 모달 루트 컨테이너 복구 (모든 정렬 및 오버레이 하드코딩 제거) */
+    <div className='modal-root'>
+      
+      {/* 자연스러운 테마 반투명을 담당하는 순정 오버레이 */}
+      <div className='modal-root__overlay' onClick={onClose} />
+      
+      {/* 플렉스 중앙 정렬을 자동으로 처리해 주는 컨테이너 */}
+      <div className='modal-root__container' onClick={onClose}>
+        
+        {/* 🚨 2. 하드코딩 헥스 코드 제거: --color-bg-primary 변수만 깔끔하게 적용 */}
+        <div 
+          className={classNames('modal-root__modal', 'safety-action-modal')} 
+          onClick={e => e.stopPropagation()}
+          style={{ backgroundColor: 'var(--color-bg-primary)', borderRadius: '8px' }}
+        >
           
-          {/* 토큰 발급 안내 박스 추가 */}
-          <div style={instructionBoxStyle}>
-            <p style={instructionTitleStyle}>💡 액세스 토큰 발급 방법</p>
-            <ol style={instructionListStyle}>
-              <li>브라우저 <b>시크릿 창</b>을 열어 추가할 계정으로 로그인합니다.</li>
-              <li><b>[환경설정] → [개발] → [새로운 애플리케이션]</b>으로 이동합니다.</li>
-              <li>애플리케이션 이름(예: 부계정)을 입력합니다.</li>
-              <li><b>[read], [profile], [write], [follwe]</b>에 모두 체크합니다.</li>
-              <li><b>[제출]</b> 버튼을 누릅니다.</li>
-              <li>생성된 어플리케이션을 클릭한 뒤, 상단의 <b>'액세스 토큰'</b>을 복사합니다.</li>
-            </ol>
-          </div>
-        </div>
+          <div className='safety-action-modal__top'>
+            <div className='safety-action-modal__confirmation'>
+              
+              <h1 style={{ fontSize: '20px', fontWeight: 'bold', marginBottom: '12px', color: 'var(--color-text-primary)' }}>
+                새 계정 연결하기
+              </h1>
+              <p style={{ color: 'var(--color-text-secondary)', marginBottom: '24px', fontSize: '15px' }}>
+                아래 안내에 따라 발급받은 액세스 토큰을 입력하세요.
+              </p>
 
-        <form onSubmit={handleSubmit} style={formStyle}>
-          <div style={inputGroupStyle}>
-            <label style={labelStyle}>액세스 토큰</label>
-            <input
-              type="password"
-              value={token}
-              onChange={(e) => setToken(e.target.value)}
-              style={inputStyle}
-              placeholder="복사한 토큰을 여기에 붙여넣으세요"
-              disabled={isLoading}
-              autoFocus
-              required
-            />
-          </div>
+              {/* 🚨 3. 안내창: --color-bg-secondary 변수 적용 */}
+              <div style={{ backgroundColor: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '8px', marginBottom: '24px', textAlign: 'left' }}>
+                <strong style={{ display: 'block', marginBottom: '10px', color: 'var(--color-text-primary)' }}>💡 액세스 토큰 발급 방법</strong>
+                <ol style={{ paddingLeft: '24px', margin: 0, listStyleType: 'decimal', color: 'var(--color-text-secondary)', fontSize: '14px', lineHeight: '1.6' }}>
+                  <li>브라우저 <b>시크릿 창</b>을 열어 추가할 계정으로 로그인합니다.</li>
+                  <li><b>[환경설정] → [개발] → [새로운 애플리케이션]</b>으로 이동합니다.</li>
+                  <li>애플리케이션 이름(예: 부계정)을 입력합니다.</li>
+                  <li><b>[read], [profile], [write], [follow]</b>에 모두 체크합니다.</li>
+                  <li><b>[제출]</b> 버튼을 누릅니다.</li>
+                  <li>생성된 어플리케이션을 클릭한 뒤, 상단의 <b>'액세스 토큰'</b>을 복사합니다.</li>
+                </ol>
+              </div>
 
-          {errorText && (
-            <div style={errorStyle}>
-              {errorText}
+              <form onSubmit={handleSubmit} style={{ margin: 0 }}>
+                <div style={{ textAlign: 'left' }}>
+                  <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: 'var(--color-text-primary)' }}>
+                    액세스 토큰
+                  </label>
+                  {/* 🚨 4. 텍스트 입력창: 테두리 없는 현대적 스타일 + 가로 100% + --color-bg-secondary */}
+                  <input
+                    type='password'
+                    value={token}
+                    onChange={(e) => setToken(e.target.value)}
+                    placeholder='복사한 토큰을 여기에 붙여넣으세요'
+                    disabled={isLoading}
+                    autoFocus
+                    className='setting-text'
+                    style={{ 
+                      width: '100%',             
+                      boxSizing: 'border-box',   
+                      backgroundColor: 'var(--color-bg-secondary)',
+                      color: 'var(--color-text-primary)',
+                      border: 'none', 
+                      borderRadius: '8px',
+                      padding: '12px 16px',
+                      outline: 'none'
+                    }}
+                  />
+                </div>
+
+                {errorText && (
+                  <div style={{ color: 'var(--color-text-error)', marginTop: '12px', fontSize: '14px', textAlign: 'left' }}>
+                    {errorText}
+                  </div>
+                )}
+              </form>
+
             </div>
-          )}
-
-          <div style={actionsStyle}>
-            <Button text="취소" onClick={onClose} disabled={isLoading} secondary />
-            <Button text="연결하기" type="submit" disabled={isLoading} loading={isLoading} />
           </div>
-        </form>
+
+          <div className='safety-action-modal__bottom'>
+            <div className='safety-action-modal__actions'>
+              <Button secondary onClick={onClose} disabled={isLoading}>
+                <FormattedMessage id='confirmation_modal.cancel' defaultMessage='Cancel' />
+              </Button>
+              <Button onClick={handleSubmit} disabled={token.trim().length === 0 || isLoading} loading={isLoading}>
+                연결하기
+              </Button>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>,
     document.body
   );
 };
 
-// --- 이하 CSS 스타일 객체 ---
-const overlayStyle: React.CSSProperties = {
-  position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-  backgroundColor: 'var(--color-bg-media)', display: 'flex',
-  alignItems: 'center', justifyContent: 'center',
-  zIndex: 9999, backdropFilter: 'blur(2px)',
-};
-
-const formContainerStyle: React.CSSProperties = {
-  backgroundColor: 'var(--color-bg-primary)', borderRadius: '4px',
-  width: '100%', maxWidth: '500px', /* 안내문 공간을 위해 너비를 살짝 늘렸습니다 */
-  boxShadow: '0 0 15px rgba(0,0,0,0.2)', overflow: 'hidden',
-};
-
-const headerStyle: React.CSSProperties = {
-  padding: '30px 30px 20px', textAlign: 'center',
-};
-
-const titleStyle: React.CSSProperties = {
-  color: 'var(--color-text-primary)', fontSize: '24px',
-  fontWeight: 500, margin: '0 0 20px',
-};
-
-// --- 신규 안내문 스타일 ---
-const instructionBoxStyle: React.CSSProperties = {
-  backgroundColor: 'var(--color-bg-secondary)', // 살짝 어두운 배경으로 구별감을 줍니다.
-  border: '1px solid var(--color-border-primary)',
-  borderRadius: '4px',
-  padding: '16px',
-  textAlign: 'left', // 읽기 편하게 좌측 정렬합니다.
-};
-
-const instructionTitleStyle: React.CSSProperties = {
-  margin: '0 0 8px 0',
-  fontSize: '14px',
-  fontWeight: 600,
-  color: 'var(--color-text-primary)',
-};
-
-const instructionListStyle: React.CSSProperties = {
-  margin: 0,
-  paddingLeft: '24px',
-  fontSize: '13px',
-  color: 'var(--color-text-secondary)',
-  lineHeight: '1.6',
-  listStyleType: 'decimal',
-};
-// -----------------------
-
-const formStyle: React.CSSProperties = { padding: '0 30px 30px' };
-const inputGroupStyle: React.CSSProperties = { marginBottom: '20px' };
-
-const labelStyle: React.CSSProperties = {
-  display: 'block', color: 'var(--color-text-tertiary)',
-  fontSize: '14px', fontWeight: 500, marginBottom: '8px',
-};
-
-const inputStyle: React.CSSProperties = {
-  display: 'block', width: '100%', boxSizing: 'border-box',
-  padding: '10px 16px', fontSize: '16px', color: 'var(--color-text-primary)',
-  backgroundColor: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)',
-  borderRadius: '4px', outline: 'none', transition: 'border-color 0.2s ease',
-};
-
-const errorStyle: React.CSSProperties = {
-  color: 'var(--color-text-error)', backgroundColor: 'var(--color-bg-error-softer)',
-  padding: '12px', borderRadius: '4px', fontSize: '14px',
-  marginBottom: '20px', textAlign: 'center',
-};
-
-const actionsStyle: React.CSSProperties = {
-  display: 'flex', justifyContent: 'space-between', marginTop: '20px',
-};
+export default AddAccountModal;

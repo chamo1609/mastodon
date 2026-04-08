@@ -50,6 +50,7 @@ import { ModalPlaceholder } from './modal_placeholder';
 import VideoModal from './video_modal';
 import { VisibilityModal } from './visibility_modal';
 import { PrivateQuoteNotify } from './confirmation_modals/private_quote_notify';
+import BookmarkFolderModal from './bookmark_folder_modal';
 
 export const MODAL_COMPONENTS = {
   'MEDIA': () => Promise.resolve({ default: MediaModal }),
@@ -105,6 +106,7 @@ export const MODAL_COMPONENTS = {
   'ACCOUNT_EDIT_IMAGE_ALT': accountEditModal('ImageAltModal'),
   'ACCOUNT_EDIT_IMAGE_DELETE': accountEditModal('ImageDeleteModal'),
   'ACCOUNT_EDIT_IMAGE_UPLOAD': accountEditModal('ImageUploadModal'),
+  'BOOKMARK_FOLDER': () => Promise.resolve({ default: BookmarkFolderModal }),
 };
 
 /** @arg {keyof import('@/mastodon/features/account_edit/modals')} type */

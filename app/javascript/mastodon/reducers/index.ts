@@ -42,6 +42,8 @@ import timelines from './timelines';
 import trends from './trends';
 import user_lists from './user_lists';
 
+import bookmark_folders from './bookmark_folders';
+
 const reducers = {
   announcements,
   dropdownMenu: dropdownMenuReducer,
@@ -81,6 +83,7 @@ const reducers = {
   notificationPolicy: notificationPolicyReducer,
   notificationRequests: notificationRequestsReducer,
   navigation: navigationReducer,
+  bookmark_folders,
   ...sliceReducers,
 };
 
