@@ -1,5 +1,4 @@
 import api, { getLinks } from '../api';
-
 import { importFetchedStatuses } from './importer';
 
 export const BOOKMARKED_STATUSES_FETCH_REQUEST = 'BOOKMARKED_STATUSES_FETCH_REQUEST';
@@ -10,7 +9,8 @@ export const BOOKMARKED_STATUSES_EXPAND_REQUEST = 'BOOKMARKED_STATUSES_EXPAND_RE
 export const BOOKMARKED_STATUSES_EXPAND_SUCCESS = 'BOOKMARKED_STATUSES_EXPAND_SUCCESS';
 export const BOOKMARKED_STATUSES_EXPAND_FAIL    = 'BOOKMARKED_STATUSES_EXPAND_FAIL';
 
-export function fetchBookmarkedStatuses() {
+// folderId 파라미터를 받을 수 있도록 인자를 추가합니다.
+export function fetchBookmarkedStatuses(folderId = null) {
   return (dispatch, getState) => {
     if (getState().getIn(['status_lists', 'bookmarks', 'isLoading'])) {
       return;
@@ -18,7 +18,10 @@ export function fetchBookmarkedStatuses() {
 
     dispatch(fetchBookmarkedStatusesRequest());
 
-    api().get('/api/v1/bookmarks').then(response => {
+    // folderId가 존재하면 params 객체에 담아 백엔드로 전송합니다.
+    const params = folderId ? { folder_id: folderId } : {};
+
+    api().get('/api/v1/bookmarks', { params }).then(response => {
       const next = getLinks(response).refs.find(link => link.rel === 'next');
       dispatch(importFetchedStatuses(response.data));
       dispatch(fetchBookmarkedStatusesSuccess(response.data, next ? next.uri : null));

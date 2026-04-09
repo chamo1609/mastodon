@@ -27,8 +27,18 @@ class Api::V1::BookmarksController < Api::BaseController
     )
   end
 
+  # ==========================================
+  # 변경된 부분 1: 요청에 따라 조회하는 테이블을 분기 처리합니다.
+  # ==========================================
   def account_bookmarks
-    current_account.bookmarks
+    if params[:folder_id].present?
+      # 해당 폴더에 속한 status_id 목록을 서브쿼리로 추출한 뒤, 기존 bookmarks 테이블에서 필터링합니다.
+      # 이렇게 하면 Bookmark 모델이 유지되므로 페이징(to_a_paginated_by_id) 메서드가 정상 작동합니다.
+      current_account.bookmarks.where(status_id: BookmarkFolderItem.where(bookmark_folder_id: params[:folder_id]).select(:status_id))
+    else
+      # 파라미터가 없으면 기존처럼 전체 북마크 반환
+      current_account.bookmarks
+    end
   end
 
   def next_path
@@ -45,5 +55,13 @@ class Api::V1::BookmarksController < Api::BaseController
 
   def records_continue?
     results.size == limit_param(DEFAULT_STATUSES_LIMIT)
+  end
+
+  # ==========================================
+  # 변경된 부분 2: 무한 스크롤(페이징) 처리 시 파라미터 유지
+  # ==========================================
+  def pagination_params(core_params)
+    # 스크롤을 내려 다음 페이지를 불러올 때, 현재 보고 있는 폴더 ID를 잃어버리지 않도록 헤더에 포함합니다.
+    params.slice(:limit, :folder_id).permit(:limit, :folder_id).merge(core_params)
   end
 end

@@ -1,6 +1,5 @@
-// import { useCallback, useState } from 'react';
 import { useCallback, useState, useRef, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 
 import { FormattedMessage, defineMessages, useIntl } from 'react-intl';
 
@@ -16,6 +15,7 @@ import UnfoldLessIcon from '@/material-icons/400-24px/unfold_less.svg?react';
 import UnfoldMoreIcon from '@/material-icons/400-24px/unfold_more.svg?react';
 import TuneIcon from '@/material-icons/400-24px/tune.svg?react';
 import TuneActiveIcon from '@/material-icons/400-24px/tune-fill.svg?react';
+import SettingsIcon from '@/material-icons/400-24px/settings.svg?react';
 import type { IconProp } from 'mastodon/components/icon';
 import { Icon } from 'mastodon/components/icon';
 import { ButtonInTabsBar } from 'mastodon/features/ui/util/columns_context';
@@ -26,6 +26,10 @@ import { getColumnSkipLinkId } from '../features/ui/components/skip_links';
 
 import { useAppHistory } from './router';
 
+// 액션 불러오기
+import { fetchBookmarkedStatuses } from 'mastodon/actions/bookmarks';
+import { fetchBookmarkFolders } from 'mastodon/actions/bookmark_folders';
+import { openModal } from 'mastodon/actions/modal';
 
 export const messages = defineMessages({
   show: { id: 'column_header.show_settings', defaultMessage: 'Show settings' },
@@ -118,34 +122,28 @@ export const ColumnHeader: React.FC<Props> = ({
   const intl = useIntl();
   const { signedIn } = useIdentity();
   const history = useAppHistory();
-  // --- 카모마일 에디션 현재 게시판 위치 추적 및 모바일 전환 방어 로직 ---
+  const dispatch = useDispatch();
+
   useEffect(() => {
     const updateBoardContext = (path: string) => {
       if (path.startsWith('/tags/')) {
-        // 게시판(해시태그) 진입 시 위치 기억
         const tag = path.split('/')[2];
-        
-        // tag가 undefined가 아니고 실제 값이 있을 때만 저장소에 기록합니다.
         if (tag) {
           sessionStorage.setItem('chamomile_board', tag);
         }
       } else if (!path.startsWith('/publish') && !path.startsWith('/statuses/new')) {
-        // 툿 작성 화면(/publish 등)으로 가는 게 아니라면 위치 정보 초기화
         sessionStorage.removeItem('chamomile_board');
       }
     };
 
-    // 처음 렌더링될 때 주소 확인
     updateBoardContext(history.location.pathname);
-
-    // 주소가 바뀔 때마다 감시
     const unlisten = history.listen((location) => {
       updateBoardContext(location.pathname);
     });
 
     return () => unlisten();
   }, [history]);
-  // -------------------------------------------------------------
+  
   const [collapsed, setCollapsed] = useState(true);
   const [animating, setAnimating] = useState(false);
 
@@ -155,21 +153,36 @@ export const ColumnHeader: React.FC<Props> = ({
     action: () => history.push(`/tags/${b.tag}`),
   }));
 
-  // --- 카모마일 에디션 게시판 추가: 커스텀 드롭다운 토글 및 바깥 클릭 감지 로직 ---
   const [boardMenuOpen, setBoardMenuOpen] = useState(false);
+  const [bookmarkMenuOpen, setBookmarkMenuOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const bookmarkFolders = useSelector((state: any) => state.bookmark_folders?.get('items'));
+  const [currentBookmarkFolder, setCurrentBookmarkFolder] = useState<{ id: number; name: string } | null>(null);
+
+  useEffect(() => {
+    if (icon === 'bookmarks') {
+      dispatch(fetchBookmarkFolders() as any);
+    }
+  }, [icon, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // 드롭다운 영역 바깥을 클릭하면 메뉴를 닫습니다.
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setBoardMenuOpen(false);
+        setBookmarkMenuOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
-  // -------------------------------------------------------------
+
+  const handleSelectBookmarkFolder = useCallback((folderId: number | null, folderName: string | null) => {
+    setCurrentBookmarkFolder(folderId && folderName ? { id: folderId, name: folderName } : null);
+    setBookmarkMenuOpen(false);
+    
+    dispatch((fetchBookmarkedStatuses as any)(folderId));
+  }, [dispatch]);
 
   const handleToggleClick = useCallback(
     (e: React.MouseEvent) => {
@@ -200,7 +213,6 @@ export const ColumnHeader: React.FC<Props> = ({
     if (!pinned) {
       history.replace('/');
     }
-
     onPin?.();
   }, [history, pinned, onPin]);
 
@@ -319,7 +331,6 @@ export const ColumnHeader: React.FC<Props> = ({
   }
 
   const hasIcon = icon && iconComponent;
-  // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
   const hasTitle = (hasIcon || backButton) && title;
   const columnIndex = useColumnIndexContext();
 
@@ -332,25 +343,29 @@ export const ColumnHeader: React.FC<Props> = ({
     </>
   );
 
+  const isHomeBoard = icon === 'home' && boardItems && boardItems.length > 0;
+
   const component = (
-    <div className={wrapperClassName}>
-      {/* h1 내부 여백을 없애고 flex 컨테이너로 만듭니다 */}
+    <div className={wrapperClassName} ref={dropdownRef}>
       <h1 className={buttonClassName} style={{ padding: 0, display: 'flex' }}>
         {hasTitle && (
           <div style={{ display: 'flex', flex: 1, width: '100%', alignItems: 'stretch' }}>
             {backButton}
 
-{/* 타이틀 및 게시판 드롭다운 영역을 감싸는 래퍼 컨테이너 */}
             <div style={{ display: 'flex', width: '100%' }}>
-              
-              {/* 왼쪽: 타이틀 영역 (main 브랜치의 조건부 렌더링 + 카모마일 스타일 반영) */}
               {onClick ? (
                 <button
                   onClick={handleTitleClick}
                   className='column-header__title'
                   type='button'
                   id={getColumnSkipLinkId(columnIndex)}
-                  style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRight: boardItems && boardItems.length > 0 ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    justifyContent: isHomeBoard ? 'center' : 'flex-start',
+                    alignItems: 'center',
+                    borderRight: isHomeBoard ? '1px solid rgba(127,127,127,0.2)' : 'none'
+                  }}
                 >
                   {titleContents}
                 </button>
@@ -359,15 +374,21 @@ export const ColumnHeader: React.FC<Props> = ({
                   className='column-header__title'
                   tabIndex={-1}
                   id={getColumnSkipLinkId(columnIndex)}
-                  style={{ flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', borderRight: boardItems && boardItems.length > 0 ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
+                  style={{
+                    flex: 1,
+                    display: 'flex',
+                    justifyContent: isHomeBoard ? 'center' : 'flex-start',
+                    alignItems: 'center',
+                    borderRight: isHomeBoard ? '1px solid rgba(127,127,127,0.2)' : 'none'
+                  }}
                 >
                   {titleContents}
                 </span>
               )}
 
-              {/* 오른쪽: 카모마일 게시판 드롭다운 (HEAD 브랜치의 커스텀 코드 유지) */}
-              {icon === 'home' && boardItems && boardItems.length > 0 && (
-                <div ref={dropdownRef} style={{ flex: 1, display: 'flex', position: 'relative' }}>
+              {/* 홈 게시판 드롭다운 */}
+              {isHomeBoard && (
+                <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
                   <button
                     type='button'
                     onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(!boardMenuOpen); }}
@@ -386,43 +407,14 @@ export const ColumnHeader: React.FC<Props> = ({
                     />
                   </button>
 
-                  {/* 드롭다운 메뉴 본체 */}
                   {boardMenuOpen && (
-                    <div style={{ 
-                      position: 'absolute', 
-                      top: '100%', 
-                      left: 0, 
-                      width: '100%', 
-                      background: 'var(--color-bg-primary)',
-                      border: '1px solid var(--color-border-primary)',
-                      borderRadius: '4px', 
-                      boxShadow: 'var(--dropdown-shadow)',
-                      zIndex: 9999, 
-                      overflow: 'hidden', 
-                      marginTop: '4px' 
-                    }}>
+                    <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)', borderRadius: '4px', boxShadow: 'var(--dropdown-shadow)', zIndex: 9999, overflow: 'hidden', marginTop: '4px' }}>
                       {boardItems.map((b: any, index: number) => (
                         <button
                           key={b.text}
                           type="button"
-                          onClick={(e) => { 
-                            e.stopPropagation(); 
-                            setBoardMenuOpen(false); 
-                            b.action(); 
-                          }}
-                          style={{ 
-                            display: 'block', 
-                            width: '100%', 
-                            padding: '12px', 
-                            background: 'transparent', 
-                            border: 'none', 
-                            borderBottom: index === boardItems.length - 1 ? 'none' : '1px solid var(--color-border-primary)',
-                            color: 'var(--color-text-primary)',
-                            textAlign: 'center', 
-                            cursor: 'pointer', 
-                            fontSize: '14px',
-                            transition: 'background-color 0.1s ease-in-out'
-                          }}
+                          onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(false); b.action(); }}
+                          style={{ display: 'block', width: '100%', padding: '12px', background: 'transparent', border: 'none', borderBottom: index === boardItems.length - 1 ? 'none' : '1px solid var(--color-border-primary)', color: 'var(--color-text-primary)', textAlign: 'center', cursor: 'pointer', fontSize: '14px', transition: 'background-color 0.1s ease-in-out' }}
                           onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
                           onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
                         >
@@ -439,12 +431,109 @@ export const ColumnHeader: React.FC<Props> = ({
 
         {!hasTitle && backButton}
 
-        {/* 기존의 추가 버튼과 접기 버튼 */}
         <div className='column-header__buttons' style={{ position: 'absolute', right: '15px' }}>
           {extraButton}
           {collapseButton}
         </div>
       </h1>
+
+      {/* ========================================== */}
+      {/* 마스토돈 순정 알림 탭 구조 적용 (notification__filter-bar) */}
+      {/* ========================================== */}
+      {icon === 'bookmarks' && (
+        <div className='notification__filter-bar' style={{ position: 'relative', zIndex: 2 }}>
+          <button
+            type='button'
+            className={currentBookmarkFolder === null ? 'active' : ''}
+            onClick={() => handleSelectBookmarkFolder(null, null)}
+          >
+            전체 북마크
+          </button>
+          
+          <button
+            type='button'
+            className={currentBookmarkFolder !== null ? 'active' : ''}
+            onClick={(e) => { e.stopPropagation(); setBookmarkMenuOpen(!bookmarkMenuOpen); }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}
+          >
+            {currentBookmarkFolder ? currentBookmarkFolder.name : '폴더 선택'}
+            <Icon
+              id='arrow-drop-down'
+              icon={ArrowDropDownIcon}
+              style={{
+                width: '18px',
+                height: '18px',
+                fill: 'currentColor',
+                transform: bookmarkMenuOpen ? 'rotate(180deg)' : 'none',
+                transition: 'transform 0.2s ease-in-out',
+              }}
+            />
+          </button>
+
+          {/* 폴더 선택 드롭다운 UI (버튼들을 flex 레이아웃에서 독립시키기 위해 absolute 처리) */}
+          {bookmarkMenuOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '100%',
+              right: 0,
+              width: '50%', // 우측 버튼의 너비와 맞춤
+              background: 'var(--color-bg-primary)',
+              border: '1px solid var(--color-border-primary)',
+              borderTop: 'none',
+              borderRadius: '0 0 4px 4px',
+              boxShadow: 'var(--dropdown-shadow)',
+              zIndex: 9999,
+              overflow: 'hidden',
+              maxHeight: '300px',
+              overflowY: 'auto'
+            }}>
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setBookmarkMenuOpen(false);
+                  dispatch(openModal({ 
+                    modalType: 'BOOKMARK_FOLDER_MANAGEMENT', 
+                    modalProps: {} 
+                  } as any));
+                }}
+                style={{
+                  display: 'flex', width: '100%', padding: '12px', background: 'var(--color-bg-secondary)', border: 'none',
+                  borderBottom: '1px solid var(--color-border-primary)', color: 'var(--color-text-primary)',
+                  justifyContent: 'center', alignItems: 'center', cursor: 'pointer', fontSize: '14px', gap: '8px'
+                }}
+              >
+                <Icon id='settings' icon={SettingsIcon} style={{ width: '18px', height: '18px' }} />
+                북마크 폴더 관리
+              </button>
+              {bookmarkFolders && bookmarkFolders.size > 0 ? bookmarkFolders.map((folder: any, index: number) => (
+                <button
+                  key={folder.get('id')}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleSelectBookmarkFolder(folder.get('id'), folder.get('name'));
+                  }}
+                  style={{
+                    display: 'block', width: '100%', padding: '12px', background: 'transparent', border: 'none',
+                    borderBottom: index === bookmarkFolders.size - 1 ? 'none' : '1px solid var(--color-border-primary)',
+                    color: 'var(--color-text-primary)', textAlign: 'center', cursor: 'pointer', fontSize: '14px',
+                    transition: 'background-color 0.1s ease-in-out'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
+                  onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                >
+                  {folder.get('name')}
+                </button>
+              )) : (
+                <div style={{ padding: '12px', textAlign: 'center', color: 'var(--color-text-secondary)', fontSize: '14px' }}>
+                  폴더가 없습니다
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
 
       <div
         className={collapsibleClassName}
@@ -467,5 +556,4 @@ export const ColumnHeader: React.FC<Props> = ({
   }
 };
 
-// eslint-disable-next-line import/no-default-export
 export default ColumnHeader;
