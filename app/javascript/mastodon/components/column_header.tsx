@@ -362,7 +362,7 @@ export const ColumnHeader: React.FC<Props> = ({
                   style={{
                     flex: 1,
                     display: 'flex',
-                    justifyContent: isHomeBoard ? 'center' : 'flex-start',
+                    justifyContent: 'center',
                     alignItems: 'center',
                     borderRight: isHomeBoard ? '1px solid rgba(127,127,127,0.2)' : 'none'
                   }}

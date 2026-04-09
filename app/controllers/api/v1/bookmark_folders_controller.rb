@@ -35,6 +35,23 @@ class Api::V1::BookmarkFoldersController < Api::BaseController
     render_empty
   end
 
+  # ==========================================
+  # 폴더 순서 일괄 변경 (신규 추가)
+  # ==========================================
+  def reorder
+    folder_ids = params[:folder_ids] || []
+
+    # 트랜잭션(Transaction)으로 묶어서, 중간에 에러가 나면 전체 순서 변경을 취소하여 데이터 꼬임을 방지합니다.
+    ActiveRecord::Base.transaction do
+      folder_ids.each_with_index do |id, index|
+        # 콜백(Callback)을 타지 않고 빠르고 조용하게 숫자만 바꿉니다.
+        current_account.bookmark_folders.where(id: id).update_all(position: index)
+      end
+    end
+
+    render_empty
+  end
+
   private
 
   def set_bookmark_folder

@@ -331,7 +331,11 @@ namespace :api, format: false do
       resources :tags, only: [:index, :show, :update]
     end
     # 북마크 폴더 기본 CRUD
-    resources :bookmark_folders, only: [:index, :create, :update, :destroy]
+    resources :bookmark_folders, only: [:index, :create, :update, :destroy] do
+      collection do
+        post :reorder
+      end
+    end
 
     # 특정 툿을 폴더에 추가 및 제거하기 위한 라우팅
     resources :statuses, only: [] do

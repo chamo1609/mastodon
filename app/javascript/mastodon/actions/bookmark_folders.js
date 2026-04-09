@@ -78,3 +78,15 @@ export const removeStatusFromFolder = (statusId, folderId) => (dispatch, getStat
       console.error('Failed to remove status from folder', error);
     });
 };
+
+// 폴더 순서 변경 (신규 추가)
+export const reorderBookmarkFolders = (folderIds) => (dispatch, getState) => {
+  return api(getState).post('/api/v1/bookmark_folders/reorder', { folder_ids: folderIds })
+    .then(() => {
+      // 서버에 순서가 성공적으로 저장되면 폴더 목록을 새로고침합니다.
+      dispatch(fetchBookmarkFolders());
+    })
+    .catch(error => {
+      console.error('Failed to reorder bookmark folders', error);
+    });
+};

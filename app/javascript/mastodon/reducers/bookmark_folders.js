@@ -45,3 +45,15 @@ export default function bookmarkFolders(state = initialState, action) {
       return state;
   }
 }
+
+// 폴더 순서 변경
+export const reorderBookmarkFolders = (folderIds) => (dispatch, getState) => {
+  return api(getState).post('/api/v1/bookmark_folders/reorder', { folder_ids: folderIds })
+    .then(() => {
+      // 서버에 순서가 성공적으로 저장되면, 헤더의 드롭다운 목록 등 전역 상태도 최신화되도록 폴더 목록을 한 번 새로고침(Refetch) 합니다.
+      dispatch(fetchBookmarkFolders());
+    })
+    .catch(error => {
+      console.error('Failed to reorder bookmark folders', error);
+    });
+};

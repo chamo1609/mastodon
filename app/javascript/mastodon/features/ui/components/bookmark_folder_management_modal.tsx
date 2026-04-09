@@ -1,27 +1,39 @@
 import { useCallback, useEffect, useState } from 'react';
 import { FormattedMessage } from 'react-intl';
 import { closeModal, openModal } from 'mastodon/actions/modal';
-import { fetchBookmarkFolders, updateBookmarkFolder, createBookmarkFolder } from 'mastodon/actions/bookmark_folders'; // createBookmarkFolder 추가
+import { 
+  fetchBookmarkFolders, 
+  updateBookmarkFolder, 
+  createBookmarkFolder,
+  reorderBookmarkFolders
+} from 'mastodon/actions/bookmark_folders'; 
 import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
-import MenuIcon from '@/material-icons/400-24px/menu.svg?react';
+import ChevronRightIcon from '@/material-icons/400-24px/chevron_right.svg?react';
 import EditIcon from '@/material-icons/400-24px/edit.svg?react';
 import CloseIcon from '@/material-icons/400-24px/close.svg?react';
 import CheckIcon from '@/material-icons/400-24px/check.svg?react';
-import AddIcon from '@/material-icons/400-24px/add.svg?react'; // Add 아이콘 추가
+import AddIcon from '@/material-icons/400-24px/add.svg?react';
 
 export const BookmarkFolderManagementModal: React.FC = () => {
   const dispatch = useAppDispatch();
-  const folders = useAppSelector((state: any) => state.bookmark_folders?.get('items'));
-  const isLoading = useAppSelector((state: any) => state.bookmark_folders?.get('isLoading'));
+  const reduxFolders = useAppSelector((state: any) => state.bookmark_folders?.get('items'));
 
+  // 화면에 즉각적인 순서 변경을 보여주기 위한 로컬 상태
+  const [localFolders, setLocalFolders] = useState<any[]>([]);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState<string>('');
-  const [newFolderName, setNewFolderName] = useState<string>(''); // 새 폴더 이름 상태 추가
+  const [newFolderName, setNewFolderName] = useState<string>('');
 
   useEffect(() => {
     dispatch(fetchBookmarkFolders() as any);
   }, [dispatch]);
+
+  useEffect(() => {
+    if (reduxFolders) {
+      setLocalFolders(reduxFolders.toArray());
+    }
+  }, [reduxFolders]);
 
   const handleClose = useCallback(() => {
     dispatch(closeModal({ modalType: undefined, ignoreFocus: false }));
@@ -48,7 +60,6 @@ export const BookmarkFolderManagementModal: React.FC = () => {
     setEditingId(null);
   }, [dispatch, editName]);
 
-  // 새 폴더 생성 핸들러 추가
   const handleCreateFolder = useCallback((e?: React.KeyboardEvent | React.MouseEvent) => {
     if (e && 'key' in e && (e as React.KeyboardEvent).key !== 'Enter') {
       return;
@@ -56,9 +67,41 @@ export const BookmarkFolderManagementModal: React.FC = () => {
     
     if (newFolderName.trim().length > 0) {
       dispatch(createBookmarkFolder(newFolderName.trim()) as any);
-      setNewFolderName(''); // 생성 후 입력창 초기화
+      setNewFolderName('');
     }
   }, [dispatch, newFolderName]);
+
+  // 항목을 위로 올리는 함수
+  const handleMoveUp = useCallback((index: number) => {
+    if (index === 0) return;
+    
+    const newFolders = [...localFolders];
+    const temp = newFolders[index - 1];
+    newFolders[index - 1] = newFolders[index];
+    newFolders[index] = temp;
+    
+    setLocalFolders(newFolders);
+    
+    // 백엔드 연결 시 아래 코드를 활성화합니다.
+    const folderIds = newFolders.map(folder => folder.get('id'));
+    dispatch(reorderBookmarkFolders(folderIds) as any);
+  }, [localFolders, dispatch]);
+
+  // 항목을 아래로 내리는 함수
+  const handleMoveDown = useCallback((index: number) => {
+    if (index === localFolders.length - 1) return;
+    
+    const newFolders = [...localFolders];
+    const temp = newFolders[index + 1];
+    newFolders[index + 1] = newFolders[index];
+    newFolders[index] = temp;
+    
+    setLocalFolders(newFolders);
+
+    // 백엔드 연결 시 아래 코드를 활성화합니다.
+    const folderIds = newFolders.map(folder => folder.get('id'));
+    dispatch(reorderBookmarkFolders(folderIds) as any);
+  }, [localFolders]);
 
   return (
     <div className='modal-root__modal safety-action-modal' aria-live='polite'>
@@ -66,7 +109,7 @@ export const BookmarkFolderManagementModal: React.FC = () => {
         <div className='safety-action-modal__header'>
           <div>
             <h1>북마크 폴더 관리</h1>
-            <div>새 폴더를 만들거나 기존 폴더의 이름을 변경, 삭제할 수 있습니다.</div>
+            <div>새 폴더를 만들거나 기존 폴더의 이름을 변경, 삭제, 순서 조정을 할 수 있습니다.</div>
           </div>
         </div>
 
@@ -78,32 +121,13 @@ export const BookmarkFolderManagementModal: React.FC = () => {
               value={newFolderName}
               onChange={(e) => setNewFolderName(e.target.value)}
               onKeyDown={handleCreateFolder}
-              style={{ 
-                flex: 1, 
-                padding: '10px 12px', 
-                background: 'var(--color-bg-primary)', 
-                border: '1px solid var(--color-border-primary)', 
-                borderRadius: '4px', 
-                color: 'var(--text-color)' 
-              }}
+              style={{ flex: 1, padding: '10px 12px', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)', borderRadius: '4px', color: 'var(--text-color)' }}
             />
             <button 
               type="button"
               onClick={handleCreateFolder}
               disabled={newFolderName.trim().length === 0}
-              style={{ 
-                padding: '0 16px', 
-                background: newFolderName.trim().length > 0 ? 'var(--color-text-brand)' : 'var(--color-bg-secondary)', 
-                color: newFolderName.trim().length > 0 ? '#fff' : 'var(--color-text-secondary)', 
-                border: 'none', 
-                borderRadius: '4px', 
-                cursor: newFolderName.trim().length > 0 ? 'pointer' : 'default', 
-                fontWeight: 500,
-                display: 'flex',
-                alignItems: 'center',
-                gap: '4px',
-                transition: 'all 0.2s ease'
-              }}
+              style={{ padding: '0 16px', background: newFolderName.trim().length > 0 ? 'var(--color-text-brand)' : 'var(--color-bg-secondary)', color: newFolderName.trim().length > 0 ? '#fff' : 'var(--color-text-secondary)', border: 'none', borderRadius: '4px', cursor: newFolderName.trim().length > 0 ? 'pointer' : 'default', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s ease' }}
             >
               <AddIcon style={{ width: '18px', height: '18px', fill: 'currentColor' }} />
               추가
@@ -112,15 +136,17 @@ export const BookmarkFolderManagementModal: React.FC = () => {
         </div>
 
         <div style={{ maxHeight: '300px', overflowY: 'auto', padding: '0 24px 15px 24px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          {folders && folders.map((folder: any) => {
+          {localFolders.map((folder: any, index: number) => {
             const folderId = folder.get('id');
             const isEditing = editingId === folderId;
+            const isFirst = index === 0;
+            const isLast = index === localFolders.length - 1;
 
             return (
               <div
                 key={folderId}
                 style={{
-                  padding: '10px 12px',
+                  padding: '8px 12px',
                   border: '1px solid var(--color-border-primary)',
                   borderRadius: '4px',
                   background: 'var(--color-bg-secondary)',
@@ -129,9 +155,24 @@ export const BookmarkFolderManagementModal: React.FC = () => {
                   gap: '12px'
                 }}
               >
-                {/* 1. 드래그 앤 드롭 핸들 (Menu) */}
-                <div style={{ cursor: 'grab', color: 'var(--darker-text-color)', display: 'flex', alignItems: 'center' }}>
-                  <MenuIcon style={{ width: '20px', height: '20px', fill: 'currentColor' }} />
+                {/* 1. 순서 변경 버튼 (위/아래 화살표) */}
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                  <button 
+                    type="button" 
+                    onClick={() => handleMoveUp(index)} 
+                    disabled={isFirst}
+                    style={{ background: 'transparent', border: 'none', cursor: isFirst ? 'default' : 'pointer', color: isFirst ? 'var(--color-border-primary)' : 'var(--darker-text-color)', padding: 0, display: 'flex' }}
+                  >
+                    <ChevronRightIcon style={{ width: '20px', height: '20px', fill: 'currentColor', transform: 'rotate(-90deg)' }} />
+                  </button>
+                  <button 
+                    type="button" 
+                    onClick={() => handleMoveDown(index)} 
+                    disabled={isLast}
+                    style={{ background: 'transparent', border: 'none', cursor: isLast ? 'default' : 'pointer', color: isLast ? 'var(--color-border-primary)' : 'var(--darker-text-color)', padding: 0, display: 'flex' }}
+                  >
+                    <ChevronRightIcon style={{ width: '20px', height: '20px', fill: 'currentColor', transform: 'rotate(90deg)' }} />
+                  </button>
                 </div>
 
                 {/* 2. 폴더 이름 또는 수정 인풋 */}
@@ -150,7 +191,7 @@ export const BookmarkFolderManagementModal: React.FC = () => {
                   )}
                 </div>
 
-                {/* 3. 액션 버튼 영역 (Edit / Delete / Save) */}
+                {/* 3. 액션 버튼 영역 */}
                 <div style={{ display: 'flex', gap: '8px' }}>
                   {isEditing ? (
                     <button type="button" onClick={() => handleEditSave(folderId)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--color-text-brand)' }}>
@@ -170,7 +211,7 @@ export const BookmarkFolderManagementModal: React.FC = () => {
             );
           })}
           
-          {(!folders || folders.size === 0) && (
+          {localFolders.length === 0 && (
             <div style={{ padding: '20px', textAlign: 'center', color: 'var(--color-text-secondary)' }}>
               아직 만들어진 북마크 폴더가 없습니다.
             </div>
