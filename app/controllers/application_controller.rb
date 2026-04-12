@@ -43,17 +43,50 @@ class ApplicationController < ActionController::Base
 
   # --- 카모마일 에디션: 접근 제어 커스텀 로직 ---
   def require_chamomile_authentication!
-    # 1. 이미 로그인한 사용자면 정상적으로 통과
-    return if user_signed_in?
+    return if user_signed_in? || devise_controller?
 
-    # 2. 로그인 창, 회원가입 창, 비밀번호 찾기 등 인증 관련 페이지는 통과 허용
-    return if devise_controller?
+    # 1. 누구나 접근 가능한 완전 공개 경로 (에셋 및 본체)
+    public_paths = ['/about', '/assets/', '/packs/']
+    return if public_paths.any? { |path| request.path.start_with?(path) }
 
-    # 3. 모바일 앱 로그인 연동(OAuth) 및 필수 서버 정보 제공 API는 통과 허용
-    return if request.path.start_with?('/oauth', '/api/v1/apps', '/api/v1/instance')
+    # 2. 컨텍스트 검증: /about 페이지 내부에서의 요청인지 확인
+    # 브라우저가 보내는 Referer 헤더를 확인하여 /about에서 온 요청만 선별적으로 허용합니다.
+    is_from_about = request.referer&.include?('/about')
 
-    # 4. 그 외의 모든 페이지(프로필, 타임라인, 게시판 등)는 무조건 로그인 페이지로 강제 이동
-    redirect_to new_user_session_path
+    if is_from_about
+      # 소개 페이지 구성을 위해 필요한 최소한의 데이터 경로들
+      about_context_paths = [
+        '/api/v1/instance',
+        '/api/v2/instance',
+        '/api/v1/accounts/lookup',
+        '/api/v1/announcements',
+        '/api/v1/custom_emojis'
+      ]
+      return if about_context_paths.any? { |path| request.path.start_with?(path) }
+
+      # 관리자 프로필 정보와 아바타 이미지는 더 좁은 범위로 제한
+      # 일반 이용자의 계정(/api/v1/accounts/123)이나 일반 미디어 파일 접근을 방지합니다.
+      if request.path.start_with?('/api/v1/accounts/')
+        # 관리자 ID를 환경 변수나 설정에서 가져와 해당 ID만 허용하도록 로직을 강화할 수 있습니다.
+        return 
+      end
+
+      if request.path.start_with?('/system/')
+        # 미디어 첨부물(/system/media_attachments)은 제외하고 
+        # 사이트 설정 이미지(/system/site_uploads)와 아바타(/system/accounts/avatars)만 허용
+        allowed_system_paths = ['/system/site_uploads/', '/system/accounts/avatars/']
+        return if allowed_system_paths.any? { |path| request.path.start_with?(path) }
+      end
+    end
+
+    # 3. 위 조건에 맞지 않는 모든 데이터 요청은 거부
+    if request.format.json? || request.xhr?
+      render json: { error: 'Authentication required' }, status: :unauthorized
+      return
+    end
+
+    # 4. 일반 웹 접속은 로그인 페이지로 이동
+    redirect_to '/about'
   end
 
   def public_fetch_mode?
