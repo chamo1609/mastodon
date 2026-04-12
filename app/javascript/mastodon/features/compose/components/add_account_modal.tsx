@@ -54,16 +54,10 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({ onClose, onSuc
   };
 
   return createPortal(
-    /* 🚨 1. 마스토돈 순정 모달 루트 컨테이너 복구 (모든 정렬 및 오버레이 하드코딩 제거) */
-    <div className='modal-root'>
-      
-      {/* 자연스러운 테마 반투명을 담당하는 순정 오버레이 */}
+    <div className='modal-root'>      
       <div className='modal-root__overlay' onClick={onClose} />
-      
-      {/* 플렉스 중앙 정렬을 자동으로 처리해 주는 컨테이너 */}
-      <div className='modal-root__container' onClick={onClose}>
+            <div className='modal-root__container' onClick={onClose}>
         
-        {/* 🚨 2. 하드코딩 헥스 코드 제거: --color-bg-primary 변수만 깔끔하게 적용 */}
         <div 
           className={classNames('modal-root__modal', 'safety-action-modal')} 
           onClick={e => e.stopPropagation()}
@@ -80,14 +74,13 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({ onClose, onSuc
                 아래 안내에 따라 발급받은 액세스 토큰을 입력하세요.
               </p>
 
-              {/* 🚨 3. 안내창: --color-bg-secondary 변수 적용 */}
               <div style={{ backgroundColor: 'var(--color-bg-secondary)', padding: '16px', borderRadius: '8px', marginBottom: '24px', textAlign: 'left' }}>
                 <strong style={{ display: 'block', marginBottom: '10px', color: 'var(--color-text-primary)' }}>💡 액세스 토큰 발급 방법</strong>
                 <ol style={{ paddingLeft: '24px', margin: 0, listStyleType: 'decimal', color: 'var(--color-text-secondary)', fontSize: '14px', lineHeight: '1.6' }}>
                   <li>브라우저 <b>시크릿 창</b>을 열어 추가할 계정으로 로그인합니다.</li>
                   <li><b>[환경설정] → [개발] → [새로운 애플리케이션]</b>으로 이동합니다.</li>
                   <li>애플리케이션 이름(예: 부계정)을 입력합니다.</li>
-                  <li><b>[read], [profile], [write], [follow]</b>에 모두 체크합니다.</li>
+                  <li><b>[read], [profile], [write]</b>에 체크합니다.</li>
                   <li><b>[제출]</b> 버튼을 누릅니다.</li>
                   <li>생성된 어플리케이션을 클릭한 뒤, 상단의 <b>'액세스 토큰'</b>을 복사합니다.</li>
                 </ol>
@@ -98,7 +91,6 @@ export const AddAccountModal: React.FC<AddAccountModalProps> = ({ onClose, onSuc
                   <label style={{ display: 'block', fontWeight: 'bold', marginBottom: '8px', color: 'var(--color-text-primary)' }}>
                     액세스 토큰
                   </label>
-                  {/* 🚨 4. 텍스트 입력창: 테두리 없는 현대적 스타일 + 가로 100% + --color-bg-secondary */}
                   <input
                     type='password'
                     value={token}

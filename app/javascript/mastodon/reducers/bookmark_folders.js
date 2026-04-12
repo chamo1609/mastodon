@@ -28,7 +28,7 @@ export default function bookmarkFolders(state = initialState, action) {
       return state.set('isLoading', false);
       
     case BOOKMARK_FOLDER_CREATE_SUCCESS:
-      return state.update('items', items => items.push(fromJS(action.folder)));
+      return state.update('items', items => items.unshift(fromJS(action.folder)));
       
     case BOOKMARK_FOLDER_UPDATE_SUCCESS:
       return state.update('items', items => 
