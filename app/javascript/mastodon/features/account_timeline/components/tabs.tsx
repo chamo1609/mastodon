@@ -8,9 +8,7 @@ import { NavLink } from 'react-router-dom';
 import { useAccount } from '@/mastodon/hooks/useAccount';
 import { useAccountId } from '@/mastodon/hooks/useAccountId';
 
-import { areCollectionsEnabled } from '../../collections/utils';
-
-import classes from './redesign.module.scss';
+import classes from './styles.module.scss';
 
 const isActive: Required<NavLinkProps>['isActive'] = (match, location) =>
   match?.url === location.pathname ||
@@ -49,14 +47,7 @@ export const AccountTabs: FC = () => {
       {/* 하이라이트/컬렉션 탭 (권한이 있을 때만 표시) */}
       {show_featured && (
         <NavLink exact to={`/@${acct}/featured`}>
-          {areCollectionsEnabled() ? (
-            <FormattedMessage
-              id='account.featured.collections'
-              defaultMessage='Collections'
-            />
-          ) : (
-            <FormattedMessage id='account.featured' defaultMessage='Featured' />
-          )}
+          <FormattedMessage id='account.featured' defaultMessage='Featured' />
         </NavLink>
       )}
     </div>
