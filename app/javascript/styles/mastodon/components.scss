@@ -11541,7 +11541,7 @@ noscript {
   white-space: nowrap;
 }
 
-/* 카모마일 에디션: 마크다운 스타일링 (수정본) */
+/* 카모마일 에디션: 마크다운 스타일링 */
 
 .status__content__text {
   /* 1. 인라인 코드 */
@@ -11551,6 +11551,7 @@ noscript {
     padding: 0.2em 0.4em !important;
     border-radius: 4px !important;
     font-size: 0.9em;
+    color: var(--darker-text-color) !important;
   }
 
   /* 2. 코드 블록 (pre) */
@@ -11560,6 +11561,7 @@ noscript {
     border-radius: 8px !important;
     overflow-x: auto !important;
     margin: 10px 0 !important;
+    color: var(--darker-text-color) !important;
 
     /* pre 안의 code는 인라인 코드 스타일을 무시하고 배경을 투명하게 유지 */
     code {
@@ -11576,13 +11578,11 @@ noscript {
     padding: 0 0 0 16px !important;
     color: var(--darker-text-color) !important;
     border-left: 4px solid var(--color-bg-brand-base) !important;
-    font-style: italic !important;
     background: none !important; 
     border-top: none !important;
     border-right: none !important;
     border-bottom: none !important;
 
-    /* 마스토돈 기본 따옴표 모양(가상 요소) 완벽 제거 */
     &::before,
     &::after {
       content: none !important;
@@ -11590,36 +11590,33 @@ noscript {
       background-image: none !important;
     }
   }
-}
 
-/* 카모마일 에디션: 마크다운 헤더 스타일 */
-.status__content__text {
-  
-  /* 헤더 공통 속성 */
-  [class^="markdown-h"] {
-    line-height: 1.25 !important;
-    margin-top: 16px !important;
-    margin-bottom: 8px !important;
-    font-weight: bold !important;
-    
-    strong { font-weight: inherit !important; }
+  /* 4. 리스트 (ul, ol) */
+  ul, ol {
+    margin: 8px 0 !important; 
+    padding-left: 24px !important; /* 글머리 기호(bullet) 또는 숫자가 표시될 최소 공간 */
   }
 
-  /* 개별 헤더 크기 및 스타일 */
-  .markdown-h1 { 
-    font-size: 2em !important; 
-    border-bottom: 1px solid var(--color-border) !important; 
-    padding-bottom: 0.3em !important; 
+  li {
+    margin-bottom: 4px !important;
+
+    /* 마크다운 파서가 li 내부에 p 태그를 강제로 생성할 때 발생하는 이중 공백 제거 */
+    p {
+      margin: 0 !important;
+      display: inline-block; 
+    }
   }
-  
-  .markdown-h2 { 
-    font-size: 1.5em !important; 
-    border-bottom: 1px solid var(--color-border) !important; 
-    padding-bottom: 0.3em !important; 
+
+  /* 중첩 리스트 (리스트 안의 리스트) 여백 제거 */
+  li > ul,
+  li > ol {
+    margin-top: 4px !important;
+    margin-bottom: 0 !important;
   }
-  
-  .markdown-h3 { font-size: 1.25em !important; }
-  .markdown-h4 { font-size: 1em !important; }
-  .markdown-h5 { font-size: 0.875em !important; }
-  .markdown-h6 { font-size: 0.85em !important; color: var(--darker-text-color) !important; }
+
+  /* 문단(p) 바로 다음에 리스트(ul, ol)가 이어질 경우, 해당 문단의 하단 여백 제거 */
+  p:has(+ ul),
+  p:has(+ ol) {
+    margin-bottom: 0 !important;
+  }
 }

@@ -69,26 +69,40 @@ class TextFormatter
       require 'cgi'
       html = CGI.unescapeHTML(html)
 
+      # [추가됨] 1. 마크다운 코드 블록(```) 영역 추출 및 보호
+      md_code_blocks = []
+      html.gsub!(/^[ \t]*```.*?^[ \t]*```/m) do |match|
+        md_code_blocks << match
+        "___MD_CODE_BLOCK_#{md_code_blocks.size - 1}___"
+      end
+
+      # 2. ATX 헤더(#) 문법 무력화
+      html.gsub!(/^([#]{1,6})\s+/) { |match| "\\#{match}" }
+
+      # 3. Setext 헤더 및 수평선(=, -) 문법 무력화
+      html.gsub!(/^([ \t]*)([=-]+)\s*$/) { "#{$1}\\#{$2}" }
+
+      # [추가됨] 4. 보호했던 마크다운 코드 블록 복원
+      md_code_blocks.each_with_index do |block, index|
+        html.gsub!("___MD_CODE_BLOCK_#{index}___") { block }
+      end
+
+      # 5. 마크다운 파싱 및 HTML 변환
       html = Commonmarker.to_html(html, options: {
         render: { unsafe: true, hardbreaks: true },
         extension: { strikethrough: true, tagfilter: true, autolink: false }
       })
       
-      html.gsub!(/<h([1-6])>(.*?)<\/h\1>/m, '<p class="markdown-h\1"><strong>\2</strong></p>')
-      # 2. 줄바꿈 더블 현상 방어 (코드 블록 완벽 대피소)
+      # 6. HTML <pre> 블록 보호 및 개행 제거 (기존 로직)
       pre_blocks = []
       
-      # 정규식을 <pre.*?>로 변경하여 클래스나 속성이 붙은 태그도 모두 잡아냅니다.
       html.gsub!(/<pre.*?>.*?<\/pre>/m) do |match|
         pre_blocks << match
         "___PRE_BLOCK_#{pre_blocks.size - 1}___"
       end
 
-      # 일반 텍스트에 남아있는 엔터(\n, \r)를 모조리 날려 이중 줄바꿈을 막습니다.
       html.gsub!(/[\r\n]+/, '')
 
-      # 대피시켰던 코드 블록을 원상 복구합니다.
-      # (코드 안의 특수문자 오작동을 막기 위해 괄호 {} 블록 형태로 안전하게 집어넣습니다)
       pre_blocks.each_with_index do |block, index|
         html.gsub!("___PRE_BLOCK_#{index}___") { block }
       end
