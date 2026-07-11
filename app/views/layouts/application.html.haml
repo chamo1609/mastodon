@@ -30,7 +30,6 @@
     = vite_client_tag
     = vite_react_refresh_tag
     = vite_polyfills_tag
-    -# Needed for the wicg-inert polyfill. It needs to be on it's own <style> tag, with this `id`
     = vite_stylesheet_tag 'styles/entrypoints/inert.scss', media: 'all', id: 'inert-style', crossorigin: 'anonymous'
     = vite_typescript_tag 'common.ts', crossorigin: 'anonymous'
 
@@ -40,6 +39,52 @@
 
     = custom_stylesheet
 
+    - if current_theme == 'custom-theme'
+      -# 1. 데이터베이스에서 배경 이미지 URL 선언
+      - bg_light_upload = SiteUpload.find_by(var: 'custom_background_light')
+      - bg_light_url = bg_light_upload&.file? ? full_asset_url(bg_light_upload.file.url) : nil
+
+      - bg_dark_upload = SiteUpload.find_by(var: 'custom_background_dark')
+      - bg_dark_url = bg_dark_upload&.file? ? full_asset_url(bg_dark_upload.file.url) : nil
+      
+      -# 2. 데이터베이스에서 로고 이미지 URL 선언
+      - logo_light_upload = SiteUpload.find_by(var: 'custom_logo_light')
+      - logo_light_url = logo_light_upload&.file? ? full_asset_url(logo_light_upload.file.url) : nil
+
+      - logo_dark_upload = SiteUpload.find_by(var: 'custom_logo_dark')
+      - logo_dark_url = logo_dark_upload&.file? ? full_asset_url(logo_dark_upload.file.url) : nil
+      
+      -# 3. 색상 설정 로드
+      - brand_light = Setting.chamomile_brand_light.presence || '#94ca16'
+      - text_on_brand_light = Setting.chamomile_text_on_brand_light.presence || '#ffffff'
+      - bg_light = Setting.chamomile_bg_light.presence || '#fffef0'
+      - panel_light = Setting.chamomile_panel_light.presence || '#ffffff'
+      - text_light = Setting.chamomile_text_light.presence || '#303030'
+      
+      - brand_dark = Setting.chamomile_brand_dark.presence || '#ffdb63'
+      - text_on_brand_dark = Setting.chamomile_text_on_brand_dark.presence || '#6a3f00'
+      - bg_dark = Setting.chamomile_bg_dark.presence || '#1e2028'
+      - panel_dark = Setting.chamomile_panel_dark.presence || '#43433e'
+      - text_dark = Setting.chamomile_text_dark.presence || '#ffffff'
+
+      %style{ nonce: request.content_security_policy_nonce }
+        :plain
+          :root {
+            --admin-brand-light: #{brand_light};
+            --admin-text-on-brand-light: #{text_on_brand_light};
+            --admin-bg-light: #{bg_light};
+            --admin-panel-light: #{panel_light};
+            --admin-text-light: #{text_light};
+
+            --admin-brand-dark: #{brand_dark};
+            --admin-text-on-brand-dark: #{text_on_brand_dark};
+            --admin-bg-dark: #{bg_dark};
+            --admin-panel-dark: #{panel_dark};
+            --admin-text-dark: #{text_dark};
+
+            --custom-background-light: #{bg_light_url ? "url(#{bg_light_url})" : 'none'};
+            --custom-background-dark: #{bg_dark_url ? "url(#{bg_dark_url})" : 'none'};
+          }
     = yield :header_tags
 
   %body{ class: body_classes }

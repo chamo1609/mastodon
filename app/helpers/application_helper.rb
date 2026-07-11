@@ -213,6 +213,13 @@ module ApplicationHelper
       text: [params[:title], params[:text], params[:url]].compact.join(' '),
     }
 
+    if current_theme == 'custom-theme'
+      logo_light = SiteUpload.find_by(var: 'custom_logo_light')
+      logo_dark  = SiteUpload.find_by(var: 'custom_logo_dark')
+      state_params[:custom_logo_light] = full_asset_url(logo_light.file.url) if logo_light&.file?
+      state_params[:custom_logo_dark]  = full_asset_url(logo_dark.file.url)  if logo_dark&.file?
+    end
+
     permit_visibilities = %w(public unlisted private direct)
     default_privacy     = current_account&.user&.setting_default_privacy
     permit_visibilities.shift(permit_visibilities.index(default_privacy) + 1) if default_privacy.present?

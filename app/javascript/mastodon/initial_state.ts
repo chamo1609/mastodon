@@ -49,6 +49,9 @@ interface InitialStateMeta {
   terms_of_service_enabled: boolean;
   emoji_style?: string;
   wrapstodon?: InitialStateWrapstodon | null;
+
+  custom_logo_light?: string | null;
+  custom_logo_dark?: string | null;
 }
 
 interface InitialStateInstance {
@@ -157,6 +160,9 @@ export const sso_redirect = getMeta('sso_redirect');
 export const termsOfServiceEnabled = getMeta('terms_of_service_enabled');
 export const wrapstodon = getMeta('wrapstodon');
 export const instance = initialState?.instance;
+
+export const custom_logo_light = getMeta('custom_logo_light');
+export const custom_logo_dark  = getMeta('custom_logo_dark');
 
 const displayNames =
   // Intl.DisplayNames can be undefined in old browsers

@@ -174,7 +174,7 @@ class REST::AccountSerializer < ActiveModel::Serializer
     {
       automatic: object.feature_policy_as_keys(:automatic),
       manual: object.feature_policy_as_keys(:manual),
-      current_user: object.feature_policy_for_account(current_user&.account),
+      current_user: object.feature_policy_for_account(scope&.account),
     }
   end
 

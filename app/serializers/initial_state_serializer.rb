@@ -137,6 +137,8 @@ class InitialStateSerializer < ActiveModel::Serializer
       local_topic_feed_access: Setting.local_topic_feed_access,
       remote_topic_feed_access: Setting.remote_topic_feed_access,
       chamomile_boards: Setting.chamomile_boards || [],
+      custom_logo_light: object.custom_logo_light,
+      custom_logo_dark: object.custom_logo_dark,
     }
   end
 

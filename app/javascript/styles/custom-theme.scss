@@ -1,1 +1,24 @@
-/* 커스텀 테마 준비중 */
+@use 'application';
+@use 'custom';
+@use 'custom-theme/light-mixin' as light;
+@use 'custom-theme/dark-mixin' as dark;
+
+[data-color-scheme="light"] {
+  @include light.tokens;
+}
+
+@media (prefers-color-scheme: light) {
+  html:not([data-color-scheme]) {
+    @include light.tokens;
+  }
+}
+
+[data-color-scheme="dark"] {
+  @include dark.tokens;
+}
+
+@media (prefers-color-scheme: dark) {
+  html:not([data-color-scheme]) {
+    @include dark.tokens;
+  }
+}

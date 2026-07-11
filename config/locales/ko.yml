@@ -917,7 +917,7 @@ ko:
         title: 새로운 사용자가 계정 확인을 위해서는 CAPTCHA를 풀어야 하도록 합니다
       chamomile:
         title: 카모마일 설정
-        preamble: 카모마일 에디션의 커뮤니티 특수 설정 관리
+        preamble: 카모마일 에디션 특수 설정 관리
       content_retention:
         danger_zone: 위험한 영역
         preamble: 마스토돈에 저장된 사용자 콘텐츠를 어떻게 다룰지 제어합니다.
@@ -2122,6 +2122,9 @@ ko:
   themes:
     default: 기본
     bird-ui: Bird UI
+    mastodon-bird-ui-auto: Bird UI (자동)
+    mastodon-bird-ui-accessible: Bird UI (접근성)
+    mastodon-bird-ui-accessible-plus: Bird UI (접근성+)
     custom-theme: 커스텀 테마
   time:
     formats:

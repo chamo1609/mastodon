@@ -5,7 +5,7 @@
   %h1= t('admin.settings.title')
   = render partial: 'admin/settings/shared/links'
 
-= simple_form_for @admin_settings, url: admin_settings_chamomile_path, html: { method: :patch } do |f|
+= simple_form_for @admin_settings, url: admin_settings_chamomile_path, html: { method: :patch, multipart: true } do |f|
   = render 'shared/error_messages', object: @admin_settings
 
   %p.lead= t('admin.settings.chamomile.preamble')
@@ -61,5 +61,79 @@
           %tr
             %td{ height: '10', colspan: '3' }
 
+  %h2 커스텀 테마 설정
+
+  .fields-group
+    %p.hint 사이트 테마로 '커스텀 테마'를 선택한 사용자에게 적용될 브랜드 색상과 이미지를 설정합니다.
+
+    %h3{ style: 'margin-top: 20px; margin-bottom: 10px; color: var(--color-text-secondary);' } 라이트 모드 설정
+    .input
+      = label_tag :chamomile_brand_light, '브랜드 컬러 (버튼, 링크 등 강조색)'
+      = color_field_tag :chamomile_brand_light, Setting.chamomile_brand_light || '#94ca16'
+    .input
+      = label_tag :chamomile_text_on_brand_light, '브랜드 컬러 위 텍스트 색상'
+      = color_field_tag :chamomile_text_on_brand_light, Setting.chamomile_text_on_brand_light || '#ffffff'
+    .input
+      = label_tag :chamomile_bg_light, '배경 컬러 (기본 배경색)'
+      = color_field_tag :chamomile_bg_light, Setting.chamomile_bg_light || '#fffef7'
+    .input
+      = label_tag :chamomile_panel_light, '패널 배경 컬러 (글이 표시되는 영역)'
+      = color_field_tag :chamomile_panel_light, Setting.chamomile_panel_light || '#ffffff'
+    .input
+      = label_tag :chamomile_text_light, '텍스트 컬러 (기본 글자색)'
+      = color_field_tag :chamomile_text_light, Setting.chamomile_text_light || '#303030'
+
+    %h3{ style: 'margin-top: 30px; margin-bottom: 10px; color: var(--color-text-secondary);' } 다크 모드 설정
+    .input
+      = label_tag :chamomile_brand_dark, '브랜드 컬러 (버튼, 링크 등 강조색)'
+      = color_field_tag :chamomile_brand_dark, Setting.chamomile_brand_dark || '#ffdb63'
+    .input
+      = label_tag :chamomile_text_on_brand_dark, '브랜드 컬러 위 텍스트 색상'
+      = color_field_tag :chamomile_text_on_brand_dark, Setting.chamomile_text_on_brand_dark || '#6a3f00'
+    .input
+      = label_tag :chamomile_bg_dark, '배경 컬러 (기본 배경색)'
+      = color_field_tag :chamomile_bg_dark, Setting.chamomile_bg_dark || '#1e2028'
+    .input
+      = label_tag :chamomile_panel_dark, '패널 배경 컬러 (글이 표시되는 영역)'
+      = color_field_tag :chamomile_panel_dark, Setting.chamomile_panel_dark || '#43433e'
+    .input
+      = label_tag :chamomile_text_dark, '텍스트 컬러 (기본 글자색)'
+      = color_field_tag :chamomile_text_dark, Setting.chamomile_text_dark || '#ffffff'
+
+  .fields-group
+    %h2 커스텀 테마 이미지 설정
+    
+    .input.horizontal-options{ style: 'margin-top: 15px;' }
+      = label_tag :custom_logo_light, '라이트 모드 로고 이미지'
+      = file_field_tag :custom_logo_light, accept: 'image/*'
+      - current_logo_light = SiteUpload.find_by(var: 'custom_logo_light')
+      - if current_logo_light&.file?
+        %div{ style: 'width: 100%; margin-top: 10px;' }
+          = image_tag current_logo_light.file.url, width: '200', style: 'width: 200px; max-height: 50px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px;'
+
+    .input.horizontal-options
+      = label_tag :custom_background_light, '라이트 모드 배경 이미지'
+      = file_field_tag :custom_background_light, accept: 'image/*'
+      - current_bg_light = SiteUpload.find_by(var: 'custom_background_light')
+      - if current_bg_light&.file?
+        %div{ style: 'width: 100%; margin-top: 10px;' }
+          = image_tag current_bg_light.file.url, width: '300', style: 'width: 300px; max-height: 100px; object-fit: cover; display: block; border-radius: 4px;'
+
+    .input.horizontal-options{ style: 'margin-top: 15px;' }
+      = label_tag :custom_logo_dark, '다크 모드 로고 이미지'
+      = file_field_tag :custom_logo_dark, accept: 'image/*'
+      - current_logo_dark = SiteUpload.find_by(var: 'custom_logo_dark')
+      - if current_logo_dark&.file?
+        %div{ style: 'width: 100%; margin-top: 10px;' }
+          = image_tag current_logo_dark.file.url, width: '200', style: 'width: 200px; max-height: 50px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px;'
+
+    .input.horizontal-options
+      = label_tag :custom_background_dark, '다크 모드 배경 이미지'
+      = file_field_tag :custom_background_dark, accept: 'image/*'
+      - current_bg_dark = SiteUpload.find_by(var: 'custom_background_dark')
+      - if current_bg_dark&.file?
+        %div{ style: 'width: 100%; margin-top: 10px;' }
+          = image_tag current_bg_dark.file.url, width: '300', style: 'width: 300px; max-height: 100px; object-fit: cover; display: block; border-radius: 4px;'
+          
   .actions
     = f.button :button, t('generic.save_changes'), type: :submit

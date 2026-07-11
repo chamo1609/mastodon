@@ -55,6 +55,12 @@ class SiteUpload < ApplicationRecord
     }.freeze,
 
     mascot: {}.freeze,
+
+    # --- 수정된 부분: 4개의 분리된 업로드 속성 등록 ---
+    custom_logo_light: {}.freeze,
+    custom_background_light: {}.freeze,
+    custom_logo_dark: {}.freeze,
+    custom_background_dark: {}.freeze,
   }.freeze
 
   has_attached_file :file, styles: ->(file) { STYLES[file.instance.var.to_sym] }, convert_options: { all: '-coalesce +profile "!icc,*" +set date:modify +set date:create +set date:timestamp' }, processors: [:lazy_thumbnail, :blurhash_transcoder, :type_corrector]

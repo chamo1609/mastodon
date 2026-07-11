@@ -1,3 +1,5 @@
 default: styles/application.scss
-bird-ui: styles/bird-ui.scss
+mastodon-bird-ui-auto: styles/mastodon-bird-ui-auto.scss
+mastodon-bird-ui-accessible: styles/mastodon-bird-ui-accessible.scss
+mastodon-bird-ui-accessible-plus: styles/mastodon-bird-ui-accessible-plus.scss
 custom-theme: styles/custom-theme.scss
