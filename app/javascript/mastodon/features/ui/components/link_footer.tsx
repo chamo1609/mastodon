@@ -114,7 +114,17 @@ export const LinkFooter: React.FC<{
               />
             </a>
           </li>
-          <li className={classes.version}>v{version}</li>
+          <li className={classes.version}>
+            v{version}+
+            <a 
+              href='https://github.com/chamo1609/mastodon' 
+              target='_blank' 
+              rel='noopener noreferrer'
+              style={{ color: 'inherit', textDecoration: 'underline' }}
+            >
+              Chamomile Edition
+            </a>
+          </li>
         </ul>
       </section>
     </footer>
