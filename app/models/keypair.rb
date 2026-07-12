@@ -4,16 +4,17 @@
 #
 # Table name: keypairs
 #
-#  id          :bigint(8)        not null, primary key
-#  expires_at  :datetime
-#  private_key :string
-#  public_key  :string           not null
-#  revoked     :boolean          default(FALSE), not null
-#  type        :integer          not null
-#  uri         :string           not null
-#  created_at  :datetime         not null
-#  updated_at  :datetime         not null
-#  account_id  :bigint(8)        not null
+#  id             :bigint(8)        not null, primary key
+#  expires_at     :datetime
+#  local_fragment :string
+#  private_key    :string
+#  public_key     :string           not null
+#  revoked        :boolean          default(FALSE), not null
+#  type           :integer          not null
+#  uri            :string
+#  created_at     :datetime         not null
+#  updated_at     :datetime         not null
+#  account_id     :bigint(8)        not null
 #
 
 class Keypair < ApplicationRecord

@@ -7,6 +7,7 @@ import classNames from 'classnames';
 import { useParams } from 'react-router';
 
 import { List as ImmutableList } from 'immutable';
+import { createSelector } from 'reselect';
 
 import {
   expandTimelineByKey,
@@ -41,6 +42,21 @@ import { usePinnedStatusIds } from './hooks/usePinned';
 import classes from './styles.module.scss';
 
 const emptyList = ImmutableList<string>();
+
+// 프로필에서 DM을 숨기기 위한 메모이제이션 셀렉터
+const selectFilteredTimelineItems = createSelector(
+  [
+    (state: any, key: string) => selectTimelineByKey(state, key)?.items,
+    (state: any) => state.statuses,
+  ],
+  (items, statuses) => {
+    if (!items) return undefined;
+    return items.filter((statusId: string) => {
+      const status = statuses?.get(statusId);
+      return status ? status.get('visibility') !== 'direct' : true;
+    });
+  }
+);
 
 const AccountTimeline: FC<{ multiColumn: boolean }> = ({ multiColumn }) => {
   const accountId = useAccountId();
@@ -86,6 +102,9 @@ const InnerTimeline: FC<{ accountId: string; multiColumn: boolean }> = ({
   });
 
   const timeline = useAppSelector((state) => selectTimelineByKey(state, key));
+  // DM이 필터링된 상태 항목을 가져옵니다.
+  const filteredItems = useAppSelector((state) => selectFilteredTimelineItems(state, key));
+  
   const { blockedBy, hidden, suspended } = useAccountVisibility(accountId);
   const forceEmptyState = blockedBy || hidden || suspended;
 
@@ -119,9 +138,8 @@ const InnerTimeline: FC<{ accountId: string; multiColumn: boolean }> = ({
         prepend={<Prepend accountId={accountId} forceEmpty={forceEmptyState} />}
         append={<RemoteHint accountId={accountId} />}
         scrollKey='account_timeline'
-        // We want to have this component when timeline is undefined (loading),
-        // because if we don't the prepended component will re-render with every filter change.
-        statusIds={forceEmptyState ? emptyList : (timeline?.items ?? emptyList)}
+        // 원본의 timeline?.items 대신 필터링된 filteredItems를 전달합니다.
+        statusIds={forceEmptyState ? emptyList : (filteredItems ?? emptyList)}
         featuredStatusIds={pinnedStatusIds}
         isLoading={isLoading}
         hasMore={!forceEmptyState && !!timeline?.hasMore}

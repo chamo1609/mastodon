@@ -2913,6 +2913,7 @@ __metadata:
     "@types/react": "npm:^18.2.7"
     "@types/react-dom": "npm:^18.2.4"
     "@types/react-immutable-proptypes": "npm:^2.1.0"
+    "@types/react-overlays": "npm:^3.1.0"
     "@types/react-router": "npm:^5.1.20"
     "@types/react-router-dom": "npm:^5.3.3"
     "@types/react-sparklines": "npm:^1.7.2"
@@ -4671,6 +4672,15 @@ __metadata:
     "@types/prop-types": "npm:*"
     immutable: "npm:^3.8.2"
   checksum: 10c0/4dab74a43a2dde9bea6299a999dd600ae82f00082fe2b8865b11e5154e658f72fbb117132fa3753dd9a280dd8032a2574d8e7c94de5e268afdadd50d720086da
+  languageName: node
+  linkType: hard
+
+"@types/react-overlays@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "@types/react-overlays@npm:3.1.0"
+  dependencies:
+    react-overlays: "npm:*"
+  checksum: 10c0/99a4de7c56a286cf72dbf135ad6f9da7c095483987ab548ba7e63d1d885fd54939e78e8bd3dd3cf275a6f4c3d6bdcd00c6923c92cc6c3a4c9bacf5a55550f18b
   languageName: node
   linkType: hard
 
@@ -11973,7 +11983,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-overlays@npm:^5.2.1":
+"react-overlays@npm:*, react-overlays@npm:^5.2.1":
   version: 5.2.1
   resolution: "react-overlays@npm:5.2.1"
   dependencies:
