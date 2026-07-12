@@ -6,11 +6,15 @@ namespace :api, format: false do
 
   # Experimental JSON / REST API
   namespace :v1_alpha do
+    resources :async_refreshes, only: :show
+  end
+
+  # TODO: Remove once apps switch over to v1
+  scope :v1_alpha, as: :v1_alpha, module: :v1 do
     resources :accounts, only: [] do
       resources :collections, only: [:index]
+      resources :in_collections, only: [:index]
     end
-
-    resources :async_refreshes, only: :show
 
     resources :collections, only: [:show, :create, :update, :destroy] do
       resources :items, only: [:create, :destroy], controller: 'collection_items' do
@@ -28,6 +32,7 @@ namespace :api, format: false do
         resources :reblogged_by, controller: :reblogged_by_accounts, only: :index
         resources :favourited_by, controller: :favourited_by_accounts, only: :index
         resource :reblog, only: :create
+        resource :context, only: :show
         post :unreblog, to: 'reblogs#destroy'
 
         resources :quotes, only: :index do
@@ -54,10 +59,6 @@ namespace :api, format: false do
         resource :interaction_policy, only: :update
 
         post :translate, to: 'translations#create'
-      end
-
-      member do
-        get :context
       end
     end
 
@@ -224,6 +225,9 @@ namespace :api, format: false do
         resources :email_subscriptions, only: :create
       end
 
+      resources :collections, only: [:index]
+      resources :in_collections, only: [:index]
+
       member do
         post :follow
         post :unfollow
@@ -330,7 +334,7 @@ namespace :api, format: false do
 
       resources :tags, only: [:index, :show, :update]
     end
-    # 북마크 폴더 기본 CRUD
+# 북마크 폴더 기본 CRUD
     resources :bookmark_folders, only: [:index, :create, :update, :destroy] do
       collection do
         post :reorder
@@ -341,7 +345,15 @@ namespace :api, format: false do
     resources :statuses, only: [] do
       member do
         post :bookmark_folder, to: 'statuses/bookmark_folders#create'
-        delete :bookmark_folder, to: 'statuses/bookmark_folders#destroy' # 이 줄을 추가합니다.
+        delete :bookmark_folder, to: 'statuses/bookmark_folders#destroy'
+      end
+    end
+
+    resources :collections, only: [:show, :create, :update, :destroy] do
+      resources :items, only: [:create, :destroy], controller: 'collection_items' do
+        member do
+          post :revoke
+        end
       end
     end
   end

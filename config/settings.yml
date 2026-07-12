@@ -21,6 +21,7 @@ defaults: &defaults
   noindex: true
   theme: 'default'
   trends: false
+  thumbnail_description: ''
   trendable_by_default: false
   disallowed_hashtags: # space separated string or list of hashtags without the hash
   bootstrap_timeline_accounts: ''

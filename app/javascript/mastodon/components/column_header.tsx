@@ -24,6 +24,7 @@ import { useIdentity } from 'mastodon/identity_context';
 import { useColumnIndexContext } from '../features/ui/components/columns_area';
 import { getColumnSkipLinkId } from '../features/ui/components/skip_links';
 
+import { NavigationFocusTarget } from './navigation_focus_target';
 import { useAppHistory } from './router';
 
 // 액션 불러오기
@@ -220,7 +221,7 @@ export const ColumnHeader: React.FC<Props> = ({
     active,
   });
 
-  const buttonClassName = classNames('column-header', {
+  const headingClassName = classNames('column-header', {
     active,
   });
 
@@ -339,68 +340,57 @@ export const ColumnHeader: React.FC<Props> = ({
       {!backButton && hasIcon && (
         <Icon id={icon} icon={iconComponent} className='column-header__icon' />
       )}
-      {title}
+      <span className='column-header__text'>{title}</span>
     </>
   );
 
-  const isHomeBoard = icon === 'home' && boardItems && boardItems.length > 0;
+const isHomeBoard = icon === 'home' && boardItems && boardItems.length > 0;
+  const titleClassNames = classNames('column-header__title', {
+    'column-header__title--with-back-button': !!backButton,
+  });
 
   const component = (
-    <div className={wrapperClassName} ref={dropdownRef}>
-      <h1 className={buttonClassName} style={{ padding: 0, display: 'flex' }}>
+    <div className={wrapperClassName}>
+      <div className={headingClassName}>
+        {backButton}
         {hasTitle && (
-          <div style={{ display: 'flex', flex: 1, width: '100%', alignItems: 'stretch' }}>
-            {backButton}
-
-            <div style={{ display: 'flex', width: '100%' }}>
+          <NavigationFocusTarget as='h1' className='column-header__title-wrapper'>
+            {/* 제목과 드롭다운을 감싸는 Flex 컨테이너 */}
+            <div style={{ display: 'flex', width: '100%', alignItems: 'center' }}>
               {onClick ? (
                 <button
                   onClick={handleTitleClick}
-                  className='column-header__title'
+                  className={titleClassNames}
                   type='button'
                   id={getColumnSkipLinkId(columnIndex)}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderRight: isHomeBoard ? '1px solid rgba(127,127,127,0.2)' : 'none'
-                  }}
+                  style={{ flex: 1, borderRight: isHomeBoard ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
                 >
                   {titleContents}
                 </button>
               ) : (
                 <span
-                  className='column-header__title'
+                  className={titleClassNames}
                   tabIndex={-1}
                   id={getColumnSkipLinkId(columnIndex)}
-                  style={{
-                    flex: 1,
-                    display: 'flex',
-                    justifyContent: isHomeBoard ? 'center' : 'flex-start',
-                    alignItems: 'center',
-                    borderRight: isHomeBoard ? '1px solid rgba(127,127,127,0.2)' : 'none'
-                  }}
+                  style={{ flex: 1, borderRight: isHomeBoard ? '1px solid rgba(127,127,127,0.2)' : 'none' }}
                 >
                   {titleContents}
                 </span>
               )}
 
-              {/* 홈 게시판 드롭다운 */}
+              {/* 홈 게시판 드롭다운 (Custom 로직 유지) */}
               {isHomeBoard && (
-                <div style={{ flex: 1, display: 'flex', position: 'relative' }}>
+                <div style={{ flex: 0, position: 'relative', display: 'flex' }}>
                   <button
                     type='button'
                     onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(!boardMenuOpen); }}
-                    style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
+                    style={{ padding: '0 8px', background: 'transparent', border: 'none', color: 'inherit', cursor: 'pointer', fontFamily: 'inherit', fontSize: 'inherit' }}
                   >
-                    게시판
                     <Icon
                       id='arrow-drop-down'
                       icon={ArrowDropDownIcon}
                       className='column-header__board-icon'
                       style={{
-                        marginRight: '8px',
                         transform: boardMenuOpen ? 'rotate(180deg)' : 'none',
                         transition: 'transform 0.2s ease-in-out',
                       }}
@@ -408,15 +398,13 @@ export const ColumnHeader: React.FC<Props> = ({
                   </button>
 
                   {boardMenuOpen && (
-                    <div style={{ position: 'absolute', top: '100%', left: 0, width: '100%', background: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)', borderRadius: '4px', boxShadow: 'var(--dropdown-shadow)', zIndex: 9999, overflow: 'hidden', marginTop: '4px' }}>
+                    <div style={{ position: 'absolute', top: '100%', right: 0, background: 'var(--color-bg-primary)', border: '1px solid var(--color-border-primary)', borderRadius: '4px', boxShadow: 'var(--dropdown-shadow)', zIndex: 9999, overflow: 'hidden', marginTop: '4px', minWidth: '150px' }}>
                       {boardItems.map((b: any, index: number) => (
                         <button
                           key={b.text}
                           type="button"
                           onClick={(e) => { e.stopPropagation(); setBoardMenuOpen(false); b.action(); }}
-                          style={{ display: 'block', width: '100%', padding: '12px', background: 'transparent', border: 'none', borderBottom: index === boardItems.length - 1 ? 'none' : '1px solid var(--color-border-primary)', color: 'var(--color-text-primary)', textAlign: 'center', cursor: 'pointer', fontSize: '14px', transition: 'background-color 0.1s ease-in-out' }}
-                          onMouseEnter={(e) => e.currentTarget.style.background = 'var(--color-bg-secondary)'}
-                          onMouseLeave={(e) => e.currentTarget.style.background = 'transparent'}
+                          style={{ display: 'block', width: '100%', padding: '12px', background: 'transparent', border: 'none', borderBottom: index === boardItems.length - 1 ? 'none' : '1px solid var(--color-border-primary)', color: 'var(--color-text-primary)', textAlign: 'center', cursor: 'pointer', fontSize: '14px' }}
                         >
                           {b.text}
                         </button>
@@ -426,16 +414,14 @@ export const ColumnHeader: React.FC<Props> = ({
                 </div>
               )}
             </div>
-          </div>
+          </NavigationFocusTarget>
         )}
 
-        {!hasTitle && backButton}
-
-        <div className='column-header__buttons' style={{ position: 'absolute', right: '15px' }}>
+        <div className='column-header__buttons'>
           {extraButton}
           {collapseButton}
         </div>
-      </h1>
+      </div>
 
       {/* ========================================== */}
       {/* 마스토돈 순정 알림 탭 구조 적용 (notification__filter-bar) */}

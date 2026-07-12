@@ -273,13 +273,13 @@ class ComposeForm extends ImmutablePureComponent {
       Promise.resolve().then(() => {
         this.textareaRef.current.setSelectionRange(selectionStart, selectionEnd);
         this.textareaRef.current.focus();
-        this.setState({ highlighted: true });
-        this.timeout = setTimeout(() => this.setState({ highlighted: false }), 700);
       }).catch(console.error);
     } else if(prevProps.isSubmitting && !this.props.isSubmitting) {
       this.textareaRef.current.focus();
     } else if (this.props.spoiler !== prevProps.spoiler) {
-      if (this.props.spoiler) {
+      const mediaJustAdded = this.props.anyMedia && !prevProps.anyMedia;
+
+      if (this.props.spoiler && !mediaJustAdded) {
         this.spoilerText.input.focus();
       } else if (prevProps.spoiler) {
         this.textareaRef.current.focus();
@@ -303,20 +303,29 @@ class ComposeForm extends ImmutablePureComponent {
     this.props.onPickEmoji(position, data, needsSpace);
   };
 
-  render () {
+  render() {
     const { intl, onPaste, onDrop, autoFocus, withoutNavigation, maxChars, isSubmitting } = this.props;
-    const { highlighted, selectedAccount, isLocalSubmitting } = this.state;
+    const { highlighted, selectedAccount, isLocalSubmitting, isAddModalOpen } = this.state;
 
     return (
       <React.Fragment>
-        {/* 모달 렌더링 부활 */}
-        {this.state.isAddModalOpen && (
-          <AddAccountModal 
-            onClose={this.handleCloseAddModal} 
-            onSuccess={this.handleAddAccountSuccess} 
+        {/* 모달 렌더링 */}
+        {isAddModalOpen && (
+          <AddAccountModal
+            onClose={this.handleCloseAddModal}
+            onSuccess={this.handleAddAccountSuccess}
           />
         )}
-        <form className='compose-form' onSubmit={this.handleSubmit}>
+
+        <form
+          className='compose-form'
+          role='region'
+          aria-label={intl.formatMessage({
+            id: 'tabs_bar.publish',
+            defaultMessage: 'New Post'
+          })}
+          onSubmit={this.handleSubmit}
+        >
           <ReplyIndicator />
           
           {!withoutNavigation && (
@@ -326,6 +335,7 @@ class ComposeForm extends ImmutablePureComponent {
               onAddAccountClick={this.handleAddAccountClick}
             />
           )}
+          
           <Warning />
 
           <div className={classNames('compose-form__highlightable', { active: highlighted })} ref={this.setRef}>
@@ -339,7 +349,6 @@ class ComposeForm extends ImmutablePureComponent {
             {this.props.spoiler && (
               <div className='spoiler-input'>
                 <div className='spoiler-input__border' />
-
                 <AutosuggestInput
                   placeholder={intl.formatMessage(messages.spoiler_placeholder)}
                   value={this.props.spoilerText}
@@ -357,7 +366,6 @@ class ComposeForm extends ImmutablePureComponent {
                   lang={this.props.lang}
                   spellCheck
                 />
-
                 <div className='spoiler-input__border' />
               </div>
             )}
@@ -381,8 +389,8 @@ class ComposeForm extends ImmutablePureComponent {
               className='compose-form__input'
             />
 
-            <UploadForm />
             <PollForm />
+            <UploadForm />
             <ComposeQuotedStatus />
 
             <div className='compose-form__footer'>

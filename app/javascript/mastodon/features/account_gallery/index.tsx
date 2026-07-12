@@ -6,22 +6,23 @@ import { useHistory } from 'react-router-dom';
 import type { Map as ImmutableMap } from 'immutable';
 import { List as ImmutableList, isList } from 'immutable';
 
-import { expandAccountMediaTimeline } from 'mastodon/actions/timelines';
-import { ColumnBackButton } from 'mastodon/components/column_back_button';
-import { RemoteHint } from 'mastodon/components/remote_hint';
-import ScrollableList from 'mastodon/components/scrollable_list';
-import { AccountHeader } from 'mastodon/features/account_timeline/components/account_header';
-import { LimitedAccountHint } from 'mastodon/features/account_timeline/components/limited_account_hint';
-import BundleColumnError from 'mastodon/features/ui/components/bundle_column_error';
-import Column from 'mastodon/features/ui/components/column';
-import { useAccountId } from 'mastodon/hooks/useAccountId';
-import { useAccountVisibility } from 'mastodon/hooks/useAccountVisibility';
-import type { MediaAttachment } from 'mastodon/models/media_attachment';
+import { openModal } from '@/mastodon/actions/modal';
+import { expandAccountMediaTimeline } from '@/mastodon/actions/timelines';
+import { AccountHeader } from '@/mastodon/components/account_header';
+import { ColumnBackButton } from '@/mastodon/components/column_back_button';
+import { LimitedAccountHint } from '@/mastodon/components/limited_account_hint';
+import { RemoteHint } from '@/mastodon/components/remote_hint';
+import ScrollableList from '@/mastodon/components/scrollable_list';
+import { BundleColumnError } from '@/mastodon/features/ui/components/bundle_column_error';
+import Column from '@/mastodon/features/ui/components/column';
+import { useAccountId } from '@/mastodon/hooks/useAccountId';
+import { useAccountVisibility } from '@/mastodon/hooks/useAccountVisibility';
+import type { MediaAttachment } from '@/mastodon/models/media_attachment';
 import {
   useAppSelector,
   useAppDispatch,
   createAppSelector,
-} from 'mastodon/store';
+} from '@/mastodon/store';
 
 import { MediaItem } from './components/media_item';
 

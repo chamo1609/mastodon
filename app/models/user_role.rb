@@ -105,6 +105,7 @@ class UserRole < ApplicationRecord
   validates :name, presence: true, unless: :everyone?
   validates :color, format: { with: CSS_COLORS }, if: :color?
   validates :position, numericality: { in: (-POSITION_LIMIT..POSITION_LIMIT) }
+  validates :collection_limit, numericality: { only_integer: true, greater_than_or_equal_to: 0 }
 
   validate :validate_permissions_elevation
   validate :validate_position_elevation

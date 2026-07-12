@@ -80,7 +80,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev # 빌드 시간 단축을 위해 개발용 파일 공유
-
     restart: always
     env_file: .env
     environment:
@@ -99,7 +98,6 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev # 빌드 시간 단축을 위해 개발용 파일 공유
-
     restart: always
     env_file: .env
     environment:
