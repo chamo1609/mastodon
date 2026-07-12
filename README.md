@@ -2,7 +2,7 @@
 
 카모마일 에디션은 마스토돈을 기반으로 **자작 캐릭터(OC) 교류 커뮤니티 운영**을 위해 제작된 **오픈소스 에디션**입니다. 한국어 사용자의 독립적인 운영을 위한 에디션으로, 커뮤니티를 위한 여러 편의 기능을 추가하였습니다.
 
-이 프로젝트는 일부 개발 과정에서 AI 기반 코드 생성 도구를 활용(바이브 코딩)하여 제작되었습니다.
+이 프로젝트는 일부 개발 과정에서 AI 기반 도구를 활용하여 바이브 코딩으로 제작되었습니다.
 
 ## Navigation
 
@@ -16,8 +16,8 @@
 
 ### 편의 기능
 
-- 더 나은 검색: Elastic Search를 간편하게 활성화하거나 비활성화할 수 있습니다.
-- 게시판 기능: 해시태그를 활용한 독립적인 게시판을 관리자 페이지에서 동적으로 추가하고 제거할 수 있습니다.
+- 고급 검색: Elastic Search를 활성화하거나 비활성화할 수 있습니다.
+- 게시판 기능: 해시태그를 활용한 독립적인 게시판을 관리자 페이지에서 추가하고 제거할 수 있습니다.
 - 툿 작성 계정 전환: 다른 계정의 api 토큰을 저장하여 로그아웃 및 로그인 과정 없이 여러 계정에서 툿을 작성할 수 있습니다.
 - 주사위: `[[nDm]]`의 형식으로 1과 m 사이의 자연수를 랜덤으로 n개 뽑아 합을 출력하는 주사위 기능을 추가할 수 있습니다.
 - 게시글의 공개 범위와 관계 없이 답글이 툿 하단의 답글 개수에 포함됩니다.
@@ -34,7 +34,7 @@
 
 - 마크다운: 관리자는 자신의 서버의 이용자들이 마크다운 기능을 사용할 수 있도록 허용하거나, 허용하지 않을 수 있습니다.
 - 채팅방 UI: 공개 범위가 direct인 타래를 하나의 페이지에 모아 채팅방 형식으로 확인할 수 있습니다.
-- 관리자가 동적으로 테마 컬러, 배경 이미지, 앱 아이콘 등을 변경하여 커뮤니티 커스텀 테마 설정이 가능합니다.
+- 관리자가 동적으로 테마 컬러, 배경 이미지, 워드마크 로고 등을 변경하여 커뮤니티 커스텀 테마 설정이 가능합니다.
 - 자캐 커뮤니티에 적합하도록 탐색하기, 트렌드 등의 메뉴를 삭제하여 내비게이션 패널을 최적화하였습니다.
 
 ## Deployment
@@ -56,10 +56,10 @@
 - **Ruby** 3.3+
 - **PostgreSQL** 14+
 - **Redis** 7.0+
-- **Node.js** 20+
+- **Node.js** 22+
 - **FFmpeg** 5.1+
 
-위는 배포 당시의 사양으로, 마스토돈 v4.6.0 alpha를 기반으로 합니다.
+위는 배포 당시의 사양으로, 마스토돈 v4.6.3을 기반으로 합니다.
 
 This repository includes deployment configurations for **Docker and docker-compose**, as well as for other environments like Heroku and Scalingo. For Helm charts, reference the [mastodon/chart repository](https://github.com/mastodon/chart). A [**standalone** installation guide](https://docs.joinmastodon.org/admin/install/) is available in the main documentation.
 
