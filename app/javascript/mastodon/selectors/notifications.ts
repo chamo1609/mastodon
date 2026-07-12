@@ -1,7 +1,13 @@
+import type { Map as ImmutableMap } from 'immutable';
 import { createSelector } from '@reduxjs/toolkit';
 
 import { compareId } from 'mastodon/compare_id';
-import type { NotificationGroup } from 'mastodon/models/notification_group';
+import type {
+  NotificationGroup,
+  NotificationGroupMention,
+  NotificationGroupQuote,
+} from 'mastodon/models/notification_group';
+import type { Status, StatusVisibility } from 'mastodon/models/status';
 import type { NotificationGap } from 'mastodon/reducers/notification_groups';
 import type { RootState } from 'mastodon/store';
 
@@ -11,25 +17,49 @@ import {
   selectSettingsNotificationsQuickFilterShow,
 } from './settings';
 
+const isDirectMention = (
+  item: NotificationGroupMention | NotificationGroupQuote,
+  statuses: ImmutableMap<string, Status>,
+): boolean => {
+  if (!item.statusId) return false;
+
+  const status = statuses.get(item.statusId);
+  if (!status) return false;
+
+  const visibility = status.get('visibility') as StatusVisibility | undefined;
+  return visibility === 'direct';
+};
+
 const filterNotificationsByAllowedTypes = (
   showFilterBar: boolean,
   allowedType: string,
   excludedTypes: string[],
   notifications: (NotificationGroup | NotificationGap)[],
+  statuses: ImmutableMap<string, Status>,
 ) => {
   if (!showFilterBar || allowedType === 'all') {
-    // used if user changed the notification settings after loading the notifications from the server
-    // otherwise a list of notifications will come pre-filtered from the backend
-    // we need to turn it off for FilterBar in order not to block ourselves from seeing a specific category
     return notifications.filter(
       (item) => item.type === 'gap' || !excludedTypes.includes(item.type),
     );
   }
+
+  if (allowedType === 'mention' || allowedType === 'direct_mention') {
+    return notifications.filter((item) => {
+      if (item.type === 'gap') return true;
+
+      if (item.type === 'quote') return allowedType === 'mention';
+
+      if (item.type !== 'mention') return false;
+
+      const isDirect = isDirectMention(item, statuses);
+      return allowedType === 'direct_mention' ? isDirect : !isDirect;
+    });
+  }
+
   return notifications.filter(
     (item) =>
       item.type === 'gap' ||
       allowedType === item.type ||
-      (allowedType === 'mention' && item.type === 'quote') ||
       (allowedType === 'collection' &&
         (item.type === 'collection_update' ||
           item.type === 'added_to_collection')),
@@ -42,6 +72,7 @@ export const selectNotificationGroups = createSelector(
     selectSettingsNotificationsQuickFilterActive,
     selectSettingsNotificationsExcludedTypes,
     (state: RootState) => state.notificationGroups.groups,
+    (state: RootState) => state.statuses,
   ],
   filterNotificationsByAllowedTypes,
 );
@@ -52,6 +83,7 @@ const selectPendingNotificationGroups = createSelector(
     selectSettingsNotificationsQuickFilterActive,
     selectSettingsNotificationsExcludedTypes,
     (state: RootState) => state.notificationGroups.pendingGroups,
+    (state: RootState) => state.statuses,
   ],
   filterNotificationsByAllowedTypes,
 );
@@ -80,7 +112,6 @@ export const selectUnreadNotificationGroupsCount = createSelector(
   },
 );
 
-// Whether there is any unread notification according to the user-facing state
 export const selectAnyPendingNotification = createSelector(
   [
     (s: RootState) => s.notificationGroups.readMarkerId,

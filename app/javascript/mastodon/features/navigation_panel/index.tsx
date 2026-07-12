@@ -328,6 +328,10 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
 
         {signedIn && (
           <>
+            {/* <li><FollowedTagsPanel /></li> */}
+
+            <li role='separator' className='navigation-panel__sep-home' />
+
             <li>
               <NotificationsLink />
             </li>

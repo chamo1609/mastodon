@@ -4119,6 +4119,10 @@ body.layout-single-column, body.layout-multiple-columns {
     order: 2;
   }
 
+  .layout-single-column .navigation-panel__sep-home, .layout-multiple-columns .navigation-panel__sep-home {
+    order: 2 !important;
+  }
+
   .layout-single-column .column-link[href="/notifications"], .layout-multiple-columns .column-link[href="/notifications"] {
     order: 3;
   }

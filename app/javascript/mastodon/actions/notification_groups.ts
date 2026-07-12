@@ -62,9 +62,15 @@ function excludeAllTypesExcept(filter: string) {
 function getExcludedTypes(state: RootState) {
   const activeFilter = selectSettingsNotificationsQuickFilterActive(state);
 
-  return activeFilter === 'all'
-    ? selectSettingsNotificationsExcludedTypes(state)
-    : excludeAllTypesExcept(activeFilter);
+  if (activeFilter === 'all') {
+    return selectSettingsNotificationsExcludedTypes(state);
+  }
+
+  if (activeFilter === 'direct_mention') {
+    return excludeAllTypesExcept('mention');
+  }
+
+  return excludeAllTypesExcept(activeFilter);
 }
 
 function dispatchAssociatedRecords(

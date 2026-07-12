@@ -10,6 +10,7 @@ import PersonAddIcon from '@/material-icons/400-24px/person_add.svg?react';
 import RepeatIcon from '@/material-icons/400-24px/repeat.svg?react';
 import ReplyAllIcon from '@/material-icons/400-24px/reply_all.svg?react';
 import StarIcon from '@/material-icons/400-24px/star.svg?react';
+import MailIcon from '@/material-icons/400-24px/mail.svg?react';
 import { setNotificationsFilter } from 'mastodon/actions/notification_groups';
 import { Icon } from 'mastodon/components/icon';
 import {
@@ -20,6 +21,10 @@ import { useAppDispatch, useAppSelector } from 'mastodon/store';
 
 const tooltips = defineMessages({
   mentions: { id: 'notifications.filter.mentions', defaultMessage: 'Mentions' },
+  directMentions: {
+    id: 'privacy.direct.short',
+    defaultMessage: 'Only people I mention',
+  },
   favourites: {
     id: 'notifications.filter.favourites',
     defaultMessage: 'Favorites',
@@ -91,6 +96,15 @@ export const FilterBar: React.FC = () => {
         </BarButton>
         <BarButton
           selectedFilter={selectedFilter}
+          type='direct_mention'
+          key='direct_mention'
+          title={intl.formatMessage(tooltips.directMentions)}
+        >
+          <Icon id='lock' icon={MailIcon} />
+          <Icon id='reply-all' icon={ReplyAllIcon} />
+        </BarButton>
+        <BarButton
+          selectedFilter={selectedFilter}
           type='favourite'
           key='favourite'
           title={intl.formatMessage(tooltips.favourites)}
@@ -153,6 +167,9 @@ export const FilterBar: React.FC = () => {
             id='notifications.filter.mentions'
             defaultMessage='Mentions'
           />
+        </BarButton>
+        <BarButton selectedFilter={selectedFilter} type='direct_mention' key='direct_mention'>
+          <FormattedMessage id='notifications.filter.direct_mentions' defaultMessage='개인 멘션' />
         </BarButton>
       </div>
     );
