@@ -26,6 +26,8 @@
 
     %title= html_title
 
+    %meta{ name: 'current-theme', content: current_theme }/
+
     = theme_style_tags current_theme
     = vite_client_tag
     = vite_react_refresh_tag
@@ -40,19 +42,23 @@
     = custom_stylesheet
 
     - if current_theme == 'custom-theme'
-      -# 1. 데이터베이스에서 배경 이미지 URL 선언
+      -# 1. 데이터베이스에서 배경 이미지 URL 선언 및 기본 PNG 매핑
       - bg_light_upload = SiteUpload.find_by(var: 'custom_background_light')
       - bg_light_url = bg_light_upload&.file? ? full_asset_url(bg_light_upload.file.url) : nil
+      - bg_light_final = bg_light_url.presence || frontend_asset_path('images/custom-bg-light.png')
 
       - bg_dark_upload = SiteUpload.find_by(var: 'custom_background_dark')
       - bg_dark_url = bg_dark_upload&.file? ? full_asset_url(bg_dark_upload.file.url) : nil
+      - bg_dark_final = bg_dark_url.presence || frontend_asset_path('images/custom-bg-dark.png')
       
-      -# 2. 데이터베이스에서 로고 이미지 URL 선언
+      -# 2. 데이터베이스에서 로고 이미지 URL 선언 및 기본 PNG 매핑
       - logo_light_upload = SiteUpload.find_by(var: 'custom_logo_light')
       - logo_light_url = logo_light_upload&.file? ? full_asset_url(logo_light_upload.file.url) : nil
+      - logo_light_final = logo_light_url.presence || frontend_asset_path('images/custom-wordmark-light.png')
 
       - logo_dark_upload = SiteUpload.find_by(var: 'custom_logo_dark')
       - logo_dark_url = logo_dark_upload&.file? ? full_asset_url(logo_dark_upload.file.url) : nil
+      - logo_dark_final = logo_dark_url.presence || frontend_asset_path('images/custom-wordmark-dark.png')
       
       -# 3. 색상 설정 로드
       - brand_light = Setting.chamomile_brand_light.presence || '#94ca16'
@@ -82,8 +88,10 @@
             --admin-panel-dark: #{panel_dark};
             --admin-text-dark: #{text_dark};
 
-            --custom-background-light: #{bg_light_url ? "url(#{bg_light_url})" : 'none'};
-            --custom-background-dark: #{bg_dark_url ? "url(#{bg_dark_url})" : 'none'};
+            --custom-background-light: url('#{bg_light_final}');
+            --custom-background-dark: url('#{bg_dark_final}');
+            --custom-logo-light: url('#{logo_light_final}');
+            --custom-logo-dark: url('#{logo_dark_final}');
           }
     = yield :header_tags
 

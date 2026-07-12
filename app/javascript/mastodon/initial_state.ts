@@ -52,6 +52,8 @@ interface InitialStateMeta {
 
   custom_logo_light?: string | null;
   custom_logo_dark?: string | null;
+  custom_background_light?: string | null;
+  custom_background_dark?: string | null;
 }
 
 interface InitialStateInstance {
@@ -163,6 +165,8 @@ export const instance = initialState?.instance;
 
 export const custom_logo_light = getMeta('custom_logo_light');
 export const custom_logo_dark  = getMeta('custom_logo_dark');
+export const custom_background_light = getMeta('custom_background_light');
+export const custom_background_dark  = getMeta('custom_background_dark');
 
 const displayNames =
   // Intl.DisplayNames can be undefined in old browsers

@@ -2,49 +2,35 @@ import { useState, useEffect } from 'react';
 import classNames from 'classnames';
 
 import logo from '@/images/logo.svg';
-import { custom_logo_light, custom_logo_dark } from 'mastodon/initial_state';
-
-const useColorScheme = () => {
-  const [isLightMode, setIsLightMode] = useState(false);
-
-  useEffect(() => {
-    const checkTheme = () => {
-      setIsLightMode(document.documentElement.getAttribute('data-color-scheme') === 'light');
-    };
-    checkTheme();
-
-    const observer = new MutationObserver(checkTheme);
-    observer.observe(document.documentElement, {
-      attributes: true,
-      attributeFilter: ['data-color-scheme'],
-    });
-
-    return () => observer.disconnect();
-  }, []);
-
-  return isLightMode;
-};
 
 export const WordmarkLogo: React.FC = () => {
-  const isLightMode = useColorScheme();
-  const activeCustomLogo = isLightMode ? custom_logo_light : custom_logo_dark;
+  const [isCustomTheme, setIsCustomTheme] = useState(false);
 
-  if (activeCustomLogo) {
-    return (
-      <img 
-        src={activeCustomLogo} 
-        alt='Chamomile' 
-        className='logo logo--wordmark custom-brand-logo' 
-        style={{ width: '100%', height: 'auto', display: 'block', objectFit: 'contain' }}
-      />
-    );
-  }
+  useEffect(() => {
+    // 1. HAML에서 심어둔 메타 태그를 찾습니다.
+    const themeMeta = document.querySelector('meta[name="current-theme"]');
+    
+    // 2. 메타 태그의 content 값이 'custom-theme'인지 확인하여 상태를 업데이트합니다.
+    if (themeMeta && themeMeta.getAttribute('content') === 'custom-theme') {
+      setIsCustomTheme(true);
+    }
+  }, []);
 
   return (
-    <svg viewBox='0 0 261 66' className='logo logo--wordmark' role='img'>
-      <title>Mastodon</title>
-      <use xlinkHref='#logo-symbol-wordmark' />
-    </svg>
+    <>
+      {/* 커스텀 테마가 아닐 때만 렌더링되는 마스토돈 순정 SVG */}
+      {!isCustomTheme && (
+        <svg viewBox='0 0 261 66' className='logo logo--wordmark mastodon-original-logo' role='img'>
+          <title>Mastodon</title>
+          <use xlinkHref='#logo-symbol-wordmark' />
+        </svg>
+      )}
+
+      {/* 커스텀 테마일 때만 렌더링되는 Chamomile 커스텀 이미지 */}
+      {isCustomTheme && (
+        <img alt='Chamomile' className='logo logo--wordmark chamomile-custom-logo' />
+      )}
+    </>
   );
 };
 

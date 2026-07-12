@@ -109,7 +109,10 @@
       - current_logo_light = SiteUpload.find_by(var: 'custom_logo_light')
       - if current_logo_light&.file?
         %div{ style: 'width: 100%; margin-top: 10px;' }
-          = image_tag current_logo_light.file.url, width: '200', style: 'width: 200px; max-height: 50px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px;'
+          = image_tag current_logo_light.file.url, width: '200', style: 'width: 200px; max-height: 50px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px; margin-bottom: 5px;'
+          = link_to admin_site_upload_path(current_logo_light), data: { method: :delete }, class: 'link-button link-button--destructive' do
+            = material_symbol 'delete'
+            = t('admin.site_uploads.delete')
 
     .input.horizontal-options
       = label_tag :custom_background_light, '라이트 모드 배경 이미지'
@@ -117,7 +120,10 @@
       - current_bg_light = SiteUpload.find_by(var: 'custom_background_light')
       - if current_bg_light&.file?
         %div{ style: 'width: 100%; margin-top: 10px;' }
-          = image_tag current_bg_light.file.url, width: '300', style: 'width: 300px; max-height: 100px; object-fit: cover; display: block; border-radius: 4px;'
+          = image_tag current_bg_light.file.url, width: '300', style: 'width: 300px; max-height: 100px; object-fit: cover; display: block; border-radius: 4px; margin-bottom: 5px;'
+          = link_to admin_site_upload_path(current_bg_light), data: { method: :delete }, class: 'link-button link-button--destructive' do
+            = material_symbol 'delete'
+            = t('admin.site_uploads.delete')
 
     .input.horizontal-options{ style: 'margin-top: 15px;' }
       = label_tag :custom_logo_dark, '다크 모드 로고 이미지'
@@ -125,7 +131,10 @@
       - current_logo_dark = SiteUpload.find_by(var: 'custom_logo_dark')
       - if current_logo_dark&.file?
         %div{ style: 'width: 100%; margin-top: 10px;' }
-          = image_tag current_logo_dark.file.url, width: '200', style: 'width: 200px; max-height: 50px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px;'
+          = image_tag current_logo_dark.file.url, width: '200', style: 'width: 200px; max-height: 50px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px; margin-bottom: 5px;'
+          = link_to admin_site_upload_path(current_logo_dark), data: { method: :delete }, class: 'link-button link-button--destructive' do
+            = material_symbol 'delete'
+            = t('admin.site_uploads.delete')
 
     .input.horizontal-options
       = label_tag :custom_background_dark, '다크 모드 배경 이미지'
@@ -133,7 +142,10 @@
       - current_bg_dark = SiteUpload.find_by(var: 'custom_background_dark')
       - if current_bg_dark&.file?
         %div{ style: 'width: 100%; margin-top: 10px;' }
-          = image_tag current_bg_dark.file.url, width: '300', style: 'width: 300px; max-height: 100px; object-fit: cover; display: block; border-radius: 4px;'
-          
+          = image_tag current_bg_dark.file.url, width: '300', style: 'width: 300px; max-height: 100px; object-fit: cover; display: block; border-radius: 4px; margin-bottom: 5px;'
+          = link_to admin_site_upload_path(current_bg_dark), data: { method: :delete }, class: 'link-button link-button--destructive' do
+            = material_symbol 'delete'
+            = t('admin.site_uploads.delete') 
+
   .actions
     = f.button :button, t('generic.save_changes'), type: :submit
