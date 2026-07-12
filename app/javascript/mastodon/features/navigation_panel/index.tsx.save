@@ -291,16 +291,6 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
         )}
  
         {/*{trendsEnabled && (
-<<<<<<< HEAD
-          <ColumnLink
-            transparent
-            to='/explore'
-            icon='explore'
-            iconComponent={TrendingUpIcon}
-            text={intl.formatMessage(messages.explore)}
-          />
-        )} */}
-=======
           <li>
             <ColumnLink
               transparent
@@ -310,8 +300,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
               text={intl.formatMessage(messages.explore)}
             />
           </li>
-        )}
->>>>>>> ori{/* {trendsEnabled && (
+        )} *}
           <li>
             <ColumnLink
               transparent

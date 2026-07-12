@@ -303,7 +303,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
         )}
 
         {/* Live feeds */}
-        {(canViewFeed(signedIn, permissions, localLiveFeedAccess) ||
+        {/* {(canViewFeed(signedIn, permissions, localLiveFeedAccess) ||
           canViewFeed(signedIn, permissions, remoteLiveFeedAccess)) && (
           <li>
             <ColumnLink
@@ -324,7 +324,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
               )}
             />
           </li>
-        )}
+        )} */}
 
         {signedIn && (
           <>
@@ -378,6 +378,9 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
                 text={intl.formatMessage(messages.bookmarks)}
               />
             </li>
+
+            <li role='separator' />
+
             <li>
               <ColumnLink
                 transparent
@@ -389,8 +392,6 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
               />
             </li>
 
-            <li role='separator' />
-
             <li>
               <ColumnLink
                 transparent
@@ -401,6 +402,8 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
                 text='프로필'
               />
             </li>
+
+            <li role='separator' />
 
             <li>
               <ColumnLink
@@ -437,7 +440,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
       </ul>
 
       <div className='flex-spacer' />
-      <Trends />
+      {/* <Trends /> */}
     </nav>
   );
 };
