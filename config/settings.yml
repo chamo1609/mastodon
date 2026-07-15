@@ -19,7 +19,7 @@ defaults: &defaults
   show_staff_badge: true
   preview_sensitive_media: false
   noindex: true
-  theme: 'default'
+  theme: 'custom-theme'
   trends: false
   thumbnail_description: ''
   trendable_by_default: false
@@ -37,8 +37,8 @@ defaults: &defaults
   wrapstodon: true
 
   # --- Chamomile Edition Settings ---
-  chamomile_dice_enabled: true
-  chamomile_markdown_enabled: true
+  chamomile_dice_enabled: false
+  chamomile_markdown_enabled: false
   chamomile_boards: []
   status_length_limit: 500
 

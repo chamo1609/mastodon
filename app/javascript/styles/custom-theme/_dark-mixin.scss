@@ -16,7 +16,7 @@
   --color-dark-electric-blue: color-mix(in srgb, var(--admin-brand-dark) 45%, var(--admin-text-dark) 55%);
   --color-profile-button-hover: color-mix(in srgb, var(--admin-text-dark) 10%, transparent);
   --color-column-link-hover: color-mix(in srgb, var(--admin-text-dark) 10%, transparent);
-  --color-modal-overlay: color-mix(in srgb, color-mix(in srgb, var(--admin-brand-dark) 40%, var(--admin-text-dark) 60%) 40%, transparent);
+  --color-modal-overlay: color-mix(in srgb, --admin-bg-dark 40%, transparent);
   --color-dark: color-mix(in srgb, var(--admin-text-dark) 5%, var(--admin-bg-dark) 95%);
   --color-thread-line: color-mix(in srgb, var(--admin-text-dark) 12%, var(--admin-bg-dark) 88%);
   --color-bg-75: color-mix(in srgb, var(--admin-bg-dark) 75%, transparent);

@@ -215,7 +215,7 @@ group :development, :test do
 end
 
 group :production do
-  gem 'lograge', '~> 0.12'
+  gem 'lograge'
 end
 
 gem 'cocoon', '~> 1.2'
