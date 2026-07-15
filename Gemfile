@@ -215,7 +215,7 @@ group :development, :test do
 end
 
 group :production do
-  gem 'lograge'
+  gem 'lograge', '~> 0.12'
 end
 
 gem 'cocoon', '~> 1.2'
@@ -231,5 +231,3 @@ gem 'hcaptcha', '~> 7.1'
 gem 'mail', '~> 2.8'
 
 gem 'vite_rails'
-
-gem 'commonmarker'

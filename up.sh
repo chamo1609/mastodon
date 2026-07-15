@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 0. 배포 시 .env.production으로 변경
-ENV_FILE=".env.production"
+ENV_FILE=".env"
 GUIDE="https://postype.com/@chamomile/todo"
 
 echo "========================================"
