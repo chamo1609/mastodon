@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-image:
+  build-images:
     runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
@@ -30,8 +30,11 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Docker meta
-        id: meta
+      # ---------------------------------------------------
+      # 1. Main Image (Web / Sidekiq) 빌드 및 푸시
+      # ---------------------------------------------------
+      - name: Docker meta for Main Image
+        id: meta-main
         uses: docker/metadata-action@v5
         with:
           images: ghcr.io/${{ github.repository }}
@@ -39,14 +42,38 @@ jobs:
             type=raw,value=latest
             type=sha
 
-      - name: Build and push
+      - name: Build and push Main Image
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
           platforms: linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          tags: ${{ steps.meta-main.outputs.tags }}
+          labels: ${{ steps.meta-main.outputs.labels }}
+          cache-from: type=gha,scope=main
+          cache-to: type=gha,mode=max,scope=main
+
+      # ---------------------------------------------------
+      # 2. Streaming Image 빌드 및 푸시
+      # ---------------------------------------------------
+      - name: Docker meta for Streaming Image
+        id: meta-streaming
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}-streaming
+          tags: |
+            type=raw,value=latest
+            type=sha
+
+      - name: Build and push Streaming Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./streaming/Dockerfile
+          platforms: linux/arm64
+          push: true
+          tags: ${{ steps.meta-streaming.outputs.tags }}
+          labels: ${{ steps.meta-streaming.outputs.labels }}
+          cache-from: type=gha,scope=streaming
+          cache-to: type=gha,mode=max,scope=streaming
