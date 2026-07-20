@@ -45,47 +45,55 @@ class ApplicationController < ActionController::Base
   def require_chamomile_authentication!
     return if user_signed_in? || devise_controller?
 
-    # 1. 누구나 접근 가능한 완전 공개 경로 (에셋 및 본체)
-    public_paths = ['/about', '/assets/', '/packs/']
-    return if public_paths.any? { |path| request.path.start_with?(path) }
+    # 1. 정적 에셋 및 PWA 필수 파일
+    public_assets = [
+      '/assets/', '/packs/', '/sw.js', '/manifest.webmanifest', 
+      '/browserconfig.xml', '/mask-icon.svg', '/favicon.ico'
+    ]
+    return if public_assets.any? { |path| request.path.start_with?(path) }
 
-    # 2. 컨텍스트 검증: /about 페이지 내부에서의 요청인지 확인
-    # 브라우저가 보내는 Referer 헤더를 확인하여 /about에서 온 요청만 선별적으로 허용합니다.
-    is_from_about = request.referer&.include?('/about')
+    # 2. 비로그인 사용자에게 허용된 웹 페이지 경로 (explore 제외)
+    allowed_web_paths = ['/about', '/terms', '/privacy-policy']
+    return if allowed_web_paths.any? { |path| request.path == path || request.path.start_with?("#{path}/") }
 
-    if is_from_about
-      # 소개 페이지 구성을 위해 필요한 최소한의 데이터 경로들
-      about_context_paths = [
-        '/api/v1/instance',
-        '/api/v2/instance',
-        '/api/v1/accounts/lookup',
-        '/api/v1/announcements',
-        '/api/v1/custom_emojis'
+    # 3. 프론트엔드 앱 구동 및 회원가입, 모바일 앱 등록에 필수적인 API 리스트
+    allowed_api_paths = [
+      '/api/v1/instance',
+      '/api/v2/instance',
+      '/api/v1/accounts/lookup', 
+      '/api/v1/announcements',
+      '/api/v1/custom_emojis',
+      '/api/v1/preferences',
+      '/api/v1/apps'             # 모바일 앱이 최초 접속 시 스스로를 등록하기 위해 필수
+    ]
+    return if allowed_api_paths.any? { |path| request.path.start_with?(path) }
+
+    # 4. 미디어 및 시스템 파일 접근 제어
+    if request.path.start_with?('/system/')
+      allowed_system_paths = [
+        '/system/site_uploads/', 
+        '/system/accounts/avatars/', 
+        '/system/accounts/headers/'
       ]
-      return if about_context_paths.any? { |path| request.path.start_with?(path) }
-
-      # 관리자 프로필 정보와 아바타 이미지는 더 좁은 범위로 제한
-      # 일반 이용자의 계정(/api/v1/accounts/123)이나 일반 미디어 파일 접근을 방지합니다.
-      if request.path.start_with?('/api/v1/accounts/')
-        # 관리자 ID를 환경 변수나 설정에서 가져와 해당 ID만 허용하도록 로직을 강화할 수 있습니다.
-        return 
-      end
-
-      if request.path.start_with?('/system/')
-        # 미디어 첨부물(/system/media_attachments)은 제외하고 
-        # 사이트 설정 이미지(/system/site_uploads)와 아바타(/system/accounts/avatars)만 허용
-        allowed_system_paths = ['/system/site_uploads/', '/system/accounts/avatars/']
-        return if allowed_system_paths.any? { |path| request.path.start_with?(path) }
-      end
+      return if allowed_system_paths.any? { |path| request.path.start_with?(path) }
     end
 
-    # 3. 위 조건에 맞지 않는 모든 데이터 요청은 거부
+    # 5. 모바일 앱 로그인 및 서버 정보 확인을 위한 Well-Known 경로
+    well_known_paths = ['/.well-known/webfinger', '/.well-known/nodeinfo', '/.well-known/host-meta']
+    return if well_known_paths.any? { |path| request.path.start_with?(path) }
+
+    # 6. OAuth 인증 경로 (모바일 앱 로그인 지원)
+    # 외부 앱 인증을 담당하는 Doorkeeper 컨트롤러에 대한 접근을 허용합니다.
+    oauth_paths = ['/oauth/']
+    return if oauth_paths.any? { |path| request.path.start_with?(path) }
+
+    # 7. 위 조건에 맞지 않는 모든 요청은 차단 (타 서버와의 연합 통신 포함)
     if request.format.json? || request.xhr?
-      render json: { error: 'Authentication required' }, status: :unauthorized
+      render json: { error: 'Authentication required for Chamomile Edition' }, status: :unauthorized
       return
     end
 
-    # 4. 일반 웹 접속은 로그인 페이지로 이동
+    # 일반 웹 브라우저 접근 시 /about으로 강제 리다이렉트
     redirect_to '/about'
   end
 
