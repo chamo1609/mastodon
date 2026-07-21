@@ -18,7 +18,6 @@ export const WordmarkLogo: React.FC = () => {
 
   return (
     <>
-      {/* 커스텀 테마가 아닐 때만 렌더링되는 마스토돈 순정 SVG */}
       {!isCustomTheme && (
         <svg viewBox='0 0 261 66' className='logo logo--wordmark mastodon-original-logo' role='img'>
           <title>Mastodon</title>
@@ -26,7 +25,6 @@ export const WordmarkLogo: React.FC = () => {
         </svg>
       )}
 
-      {/* 커스텀 테마일 때만 렌더링되는 Chamomile 커스텀 이미지 */}
       {isCustomTheme && (
         <img alt='Chamomile' className='logo logo--wordmark chamomile-custom-logo' />
       )}
