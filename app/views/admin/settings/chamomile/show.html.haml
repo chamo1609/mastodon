@@ -114,6 +114,17 @@
             = material_symbol 'delete'
             = t('admin.site_uploads.delete')
 
+    .input.horizontal-options{ style: 'margin-top: 15px;' }
+      = label_tag :custom_icon_light, '라이트 모드 아이콘 이미지'
+      = file_field_tag :custom_icon_light, accept: 'image/*'
+      - current_icon_light = SiteUpload.find_by(var: 'custom_icon_light')
+      - if current_icon_light&.file?
+        %div{ style: 'width: 100%; margin-top: 10px;' }
+          = image_tag current_icon_light.file.url, width: '100', style: 'width: 100px; max-height: 100px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px; margin-bottom: 5px;'
+          = link_to admin_site_upload_path(current_icon_light), data: { method: :delete }, class: 'link-button link-button--destructive' do
+            = material_symbol 'delete'
+            = t('admin.site_uploads.delete')
+
     .input.horizontal-options
       = label_tag :custom_background_light, '라이트 모드 배경 이미지'
       = file_field_tag :custom_background_light, accept: 'image/*'
@@ -133,6 +144,17 @@
         %div{ style: 'width: 100%; margin-top: 10px;' }
           = image_tag current_logo_dark.file.url, width: '200', style: 'width: 200px; max-height: 50px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px; margin-bottom: 5px;'
           = link_to admin_site_upload_path(current_logo_dark), data: { method: :delete }, class: 'link-button link-button--destructive' do
+            = material_symbol 'delete'
+            = t('admin.site_uploads.delete')
+
+    .input.horizontal-options{ style: 'margin-top: 15px;' }
+      = label_tag :custom_icon_dark, '다크 모드 아이콘 이미지'
+      = file_field_tag :custom_icon_dark, accept: 'image/*'
+      - current_icon_dark = SiteUpload.find_by(var: 'custom_icon_dark')
+      - if current_icon_dark&.file?
+        %div{ style: 'width: 100%; margin-top: 10px;' }
+          = image_tag current_icon_dark.file.url, width: '100', style: 'width: 100px; max-height: 100px; object-fit: contain; display: block; border-radius: 4px; background: rgba(0,0,0,0.1); padding: 5px; margin-bottom: 5px;'
+          = link_to admin_site_upload_path(current_icon_dark), data: { method: :delete }, class: 'link-button link-button--destructive' do
             = material_symbol 'delete'
             = t('admin.site_uploads.delete')
 

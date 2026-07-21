@@ -218,6 +218,10 @@ module ApplicationHelper
       logo_dark  = SiteUpload.find_by(var: 'custom_logo_dark')
       state_params[:custom_logo_light] = full_asset_url(logo_light.file.url) if logo_light&.file?
       state_params[:custom_logo_dark]  = full_asset_url(logo_dark.file.url)  if logo_dark&.file?
+      icon_light = SiteUpload.find_by(var: 'custom_icon_light')
+      icon_dark  = SiteUpload.find_by(var: 'custom_icon_dark')
+      state_params[:custom_icon_light] = full_asset_url(icon_light.file.url) if icon_light&.file?
+      state_params[:custom_icon_dark]  = full_asset_url(icon_dark.file.url)  if icon_dark&.file?
     end
 
     permit_visibilities = %w(public unlisted private direct)

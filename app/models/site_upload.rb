@@ -58,8 +58,10 @@ class SiteUpload < ApplicationRecord
 
     # --- 수정된 부분: 4개의 분리된 업로드 속성 등록 ---
     custom_logo_light: {}.freeze,
+    custom_icon_light: {}.freeze,
     custom_background_light: {}.freeze,
     custom_logo_dark: {}.freeze,
+    custom_icon_dark: {}.freeze,
     custom_background_dark: {}.freeze,
   }.freeze
 

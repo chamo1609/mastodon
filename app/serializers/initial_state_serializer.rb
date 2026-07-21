@@ -139,6 +139,8 @@ class InitialStateSerializer < ActiveModel::Serializer
       chamomile_boards: Setting.chamomile_boards || [],
       custom_logo_light: object.custom_logo_light,
       custom_logo_dark: object.custom_logo_dark,
+      custom_icon_light: object.custom_icon_light,
+      custom_icon_dark: object.custom_icon_dark,
     }
   end
 

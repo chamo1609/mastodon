@@ -4,7 +4,7 @@ class InitialStatePresenter < ActiveModelSerializers::Model
   attributes :settings, :push_subscription, :token,
              :current_account, :admin, :owner, :text, :visibility,
              :disabled_account, :moved_to_account, :critical_updates_pending,
-             :custom_logo_light, :custom_logo_dark
+             :custom_logo_light, :custom_logo_dark, :custom_icon_light, :custom_icon_dark
 
   def role
     current_account&.user_role

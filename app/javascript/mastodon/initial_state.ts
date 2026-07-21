@@ -52,6 +52,8 @@ interface InitialStateMeta {
 
   custom_logo_light?: string | null;
   custom_logo_dark?: string | null;
+  custom_icon_light?: string | null;
+  custom_icon_dark?: string | null;
   custom_background_light?: string | null;
   custom_background_dark?: string | null;
 }

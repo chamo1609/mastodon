@@ -78,6 +78,7 @@
   --rich-text-decorations-color: #803a5f;
   --bg-image: var(--custom-background-dark);
   --logo-image: var(--custom-logo-dark);
+  --icon-image: var(--custom-icon-dark);
 }
 
 html[data-contrast="high"] {
@@ -4822,7 +4823,7 @@ nav.navigation-panel .navigation-panel__logo a.column-link--logo {
   display: none;
 }
 
-nav.navigation-panel .navigation-panel__logo a.column-link--logo img.chamomile-custom-logo {
+img.chamomile-custom-logo {
   display: block;
   content: var(--logo-image);
   
@@ -4832,6 +4833,15 @@ nav.navigation-panel .navigation-panel__logo a.column-link--logo img.chamomile-c
   
   height: auto;
   max-height: 300px;
+  object-fit: contain;
+  margin: 0 auto;
+}
+
+img.chamomile-custom-icon {
+  display: block;
+  content: var(--icon-image);
+  width: 72px;
+  height: 72px;
   object-fit: contain;
   margin: 0 auto;
 }

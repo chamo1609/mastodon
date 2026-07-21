@@ -21,6 +21,10 @@ class Admin::Settings::ChamomileController < Admin::SettingsController
       upload = SiteUpload.find_or_initialize_by(var: 'custom_logo_light')
       upload.update(file: params[:custom_logo_light])
     end
+    if params[:custom_icon_light]
+      upload = SiteUpload.find_or_initialize_by(var: 'custom_icon_light')
+      upload.update(file: params[:custom_icon_light])
+    end
     if params[:custom_background_light]
       upload = SiteUpload.find_or_initialize_by(var: 'custom_background_light')
       upload.update(file: params[:custom_background_light])
@@ -30,6 +34,10 @@ class Admin::Settings::ChamomileController < Admin::SettingsController
     if params[:custom_logo_dark]
       upload = SiteUpload.find_or_initialize_by(var: 'custom_logo_dark')
       upload.update(file: params[:custom_logo_dark])
+    end
+    if params[:custom_icon_dark]
+      upload = SiteUpload.find_or_initialize_by(var: 'custom_icon_dark')
+      upload.update(file: params[:custom_icon_dark])
     end
     if params[:custom_background_dark]
       upload = SiteUpload.find_or_initialize_by(var: 'custom_background_dark')
