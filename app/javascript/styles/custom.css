@@ -4804,7 +4804,7 @@ html.no-reduce-motion .detailed-status__action-bar .icon-button.star-icon.activa
   background: color-mix(in srgb, var(--color-bg) 70%, transparent);
 }
 
-nav.navigation-panel .navigation-panel__logo {
+/* nav.navigation-panel .navigation-panel__logo {
   display: block;
   width: 100%;
   max-width: 100%;
@@ -4815,15 +4815,15 @@ nav.navigation-panel .navigation-panel__logo a.column-link--logo {
   width: 100%;
   max-width: 100%;
   box-sizing: border-box;
-  padding: 15px 0; /* 좌우 여백을 없애 가로 공간을 온전히 확보 */
+  padding: 15px 0;
   text-align: center;
-}
+} */
 
 .mastodon-original-logo {
   display: none;
 }
 
-img.chamomile-custom-logo {
+nav.navigation-panel .navigation-panel__logo a.column-link--logo img.chamomile-custom-logo {
   display: block;
   content: var(--logo-image);
   
@@ -4837,11 +4837,19 @@ img.chamomile-custom-logo {
   margin: 0 auto;
 }
 
-img.chamomile-custom-icon {
+/* 원본 마스토돈 아이콘 숨김 처리 (워드마크 CSS의 방식과 동일하게 구성) */
+.mastodon-original-icon {
+  display: none;
+}
+
+/* 커스텀 아이콘 이미지 주입 및 크기 제어 */
+button.column-header__title img.chamomile-custom-icon {
   display: block;
   content: var(--icon-image);
-  width: 72px;
-  height: 72px;
+  
+  width: auto;
+  height: 100%;
+  max-height: 24px;
+  
   object-fit: contain;
-  margin: 0 auto;
 }

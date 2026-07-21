@@ -32,7 +32,18 @@ export const WordmarkLogo: React.FC = () => {
   );
 };
 
-export const IconLogo: React.FC<{ className?: string }> = ({ className }) => {
+export const IconLogo: React.FC<{ className?: string }> = ({ className }) => (
+  <svg
+    viewBox='0 0 79 79'
+    className={classNames('logo logo--icon', className)}
+    role='img'
+  >
+    <title>Mastodon</title>
+    <use xlinkHref='#logo-symbol-icon' />
+  </svg>
+);
+
+export const SymbolLogo: React.FC<{ className?: string }> = ({ className }) => {
   const [isCustomTheme, setIsCustomTheme] = useState(false);
 
   useEffect(() => {
@@ -46,26 +57,19 @@ export const IconLogo: React.FC<{ className?: string }> = ({ className }) => {
   return (
     <>
       {!isCustomTheme && (
-        <svg
-          viewBox='0 0 79 79'
-          className={classNames('logo logo--icon', className)}
-          role='img'
-        >
-          <title>Mastodon</title>
-          <use xlinkHref='#logo-symbol-icon' />
-        </svg>
+        <img 
+          src={logo} 
+          alt='Mastodon' 
+          className='logo logo--icon mastodon-original-icon'
+        />
       )}
 
       {isCustomTheme && (
         <img 
           alt='Chamomile' 
-          className={classNames('logo logo--icon chamomile-custom-icon', className)} 
+          className='logo logo--icon chamomile-custom-icon'
         />
       )}
     </>
   );
 };
-
-export const SymbolLogo: React.FC = () => (
-  <img src={logo} alt='Mastodon' className='logo logo--icon' />
-);
