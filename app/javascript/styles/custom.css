@@ -255,6 +255,8 @@ html[data-contrast="high"] {
   --icon-instagram: url("data:image/svg+xml, <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#717c9b\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"feather feather-instagram\"><rect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"5\" ry=\"5\"></rect><path d=\"M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z\"></path><line x1=\"17.5\" y1=\"6.5\" x2=\"17.51\" y2=\"6.5\"></line></svg>");
   --icon-profile: url('@/material-icons/400-24px/account_circle.svg');
   --icon-profile-active: url('@/material-icons/400-24px/account_circle-fill.svg');
+  --icon-mail: url('@/material-icons/400-24px/mail.svg');
+  --icon-mail-active: url('@/material-icons/400-24px/mail-fill.svg');
 }
 
 html[data-contrast="high"] {
@@ -295,6 +297,8 @@ html[data-contrast="high"] {
   --icon-instagram: url("data:image/svg+xml, <svg xmlns=\"http://www.w3.org/2000/svg\" width=\"18\" height=\"18\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"#b8b3c0\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" class=\"feather feather-instagram\"><rect x=\"2\" y=\"2\" width=\"20\" height=\"20\" rx=\"5\" ry=\"5\"></rect><path d=\"M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z\"></path><line x1=\"17.5\" y1=\"6.5\" x2=\"17.51\" y2=\"6.5\"></line></svg>");
   --icon-profile: url('@/material-icons/400-24px/account_circle.svg');
   --icon-profile-active: url('@/material-icons/400-24px/account_circle-fill.svg');
+  --icon-mail: url('@/material-icons/400-24px/mail.svg');
+  --icon-mail-active: url('@/material-icons/400-24px/mail-fill.svg');
 }
 
 @media (width >= 1175px) and (width <= 1260px) {
@@ -3110,6 +3114,11 @@ body.layout-single-column, body.layout-multiple-columns {
   display: none;
 }
 
+.layout-single-column .ui__navigation-bar__item[href="/conversations"] svg path,
+.layout-multiple-columns .ui__navigation-bar__item[href="/conversations"] svg path {
+  display: none;
+}
+
 .layout-single-column .icon-user-plus.column-link__icon path, .layout-single-column .icon.icon-collections path, .layout-single-column .icon.icon-undefined path, .layout-single-column .icon.icon-users path, .layout-single-column [class*="_comp_account_header__buttons"] .optional path, .layout-single-column [class*="_comp_account_header__buttons"] .icon.icon-user-plus path, .layout-single-column .notification__filter-bar .icon.icon-user-plus path, .layout-single-column [class*="_comp_account_header__buttons"] .icon.icon-tasks path, .layout-single-column .notification__filter-bar .icon.icon-tasks path, .layout-single-column .icon.icon-wrapstodon-planet path, .layout-single-column .navigation-panel__legal .column-link[href="/about"] path, .layout-multiple-columns .icon-user-plus.column-link__icon path, .layout-multiple-columns .icon.icon-collections path, .layout-multiple-columns .icon.icon-undefined path, .layout-multiple-columns .icon.icon-users path, .layout-multiple-columns [class*="_comp_account_header__buttons"] .optional path, .layout-multiple-columns [class*="_comp_account_header__buttons"] .icon.icon-user-plus path, .layout-multiple-columns .notification__filter-bar .icon.icon-user-plus path, .layout-multiple-columns [class*="_comp_account_header__buttons"] .icon.icon-tasks path, .layout-multiple-columns .notification__filter-bar .icon.icon-tasks path, .layout-multiple-columns .icon.icon-wrapstodon-planet path, .layout-multiple-columns .navigation-panel__legal .column-link[href="/about"] path {
   display: block;
 }
@@ -3158,6 +3167,14 @@ body.layout-single-column, body.layout-multiple-columns {
 
 .layout-single-column .ui__navigation-bar__item[href="/notifications"].active .icon, .layout-single-column .column-link.active .icon-bell, .layout-multiple-columns .ui__navigation-bar__item[href="/notifications"].active .icon, .layout-multiple-columns .column-link.active .icon-bell {
   background-image: var(--icon-bell-active);
+}
+
+.layout-single-column .ui__navigation-bar__item[href="/conversations"] .icon, .layout-single-column .icon.icon-mail-o, .layout-single-column .column-link .icon-mail, .layout-multiple-columns .ui__navigation-bar__item[href="/conversations"] .icon, .layout-multiple-columns .icon.icon-mail-o, .layout-multiple-columns .column-link .icon-mail {
+  background-image: var(--icon-mail);
+}
+
+.layout-single-column .ui__navigation-bar__item[href="/conversations"].active .icon, .layout-single-column .column-link.active .icon-mail, .layout-multiple-columns .ui__navigation-bar__item[href="/conversations"].active .icon, .layout-multiple-columns .column-link.active .icon-mail {
+  background-image: var(--icon-mail-active);
 }
 
 .layout-single-column .ui__navigation-bar__item[href="/explore"] .icon, .layout-single-column .column-link .icon-explore, .layout-single-column .column-link .icon-hashtag, .layout-multiple-columns .ui__navigation-bar__item[href="/explore"] .icon, .layout-multiple-columns .column-link .icon-explore, .layout-multiple-columns .column-link .icon-hashtag {
