@@ -221,9 +221,6 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
   const showSearch = useBreakpoint('full') && !multiColumn;
   const account = useAccount(me);
 
-  const meAccount = useAppSelector((state) => (me ? state.accounts.get(me) : null));
-  const myHandle = meAccount ? (meAccount.get('username') as string) : '';
-
   let banner: React.ReactNode;
 
   if (transientSingleColumn) {
@@ -395,10 +392,14 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
             <li>
               <ColumnLink
                 transparent
-                to={`/@${myHandle}`}
+                to={`/@${account?.get('username') || ''}`}
                 icon='profile'
                 iconComponent={AccountIcon}
-                activeIconComponent={AccountActiveIcon}
+                activeIconComponent={
+                  location.pathname === `/@${account?.get('username') || ''}`
+                    ? AccountActiveIcon
+                    : AccountIcon
+                }
                 text='프로필'
               />
             </li>

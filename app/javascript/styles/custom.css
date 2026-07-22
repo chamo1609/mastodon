@@ -1512,6 +1512,10 @@ body.layout-single-column, body.layout-multiple-columns {
   order: 2;
 }
 
+.layout-single-column .navigation-panel__sep-home, .layout-multiple-columns .navigation-panel__sep-home {
+  order: 2 !important;
+}
+
 .layout-single-column .navigation-panel__menu > li.navigation-panel__list-panel, .layout-multiple-columns .navigation-panel__menu > li.navigation-panel__list-panel {
   order: 90;
 }
