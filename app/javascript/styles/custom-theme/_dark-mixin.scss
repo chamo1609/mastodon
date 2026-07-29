@@ -38,7 +38,8 @@
   --color-bg-tertiary: rgb(0 0 0 / 8%);
   --color-bg-elevated: var(--admin-panel-dark);
   --color-bg-overlay: var(--admin-bg-dark);
-  --color-bg-inverted: var(--admin-bg-dark);
+  --color-bg-inverted: var(--admin-bg-light);
+  --color-text-inverted: var(--admin-text-light);
   --color-text-primary: var(--admin-text-dark);
   --color-text-secondary: color-mix(in srgb, var(--admin-text-dark) 60%, transparent);
   --color-text-tertiary: color-mix(in srgb, var(--admin-text-dark) 50%, transparent);
