@@ -34,7 +34,7 @@
 
 - 마크다운: 관리자는 자신의 서버의 이용자들이 마크다운 기능을 사용할 수 있도록 허용하거나, 허용하지 않을 수 있습니다.
 - 채팅방 UI: 공개 범위가 direct인 타래를 하나의 페이지에 모아 채팅방 형식으로 확인할 수 있습니다.
-- 관리자가 동적으로 테마 컬러, 배경 이미지, 워드마크 로고 등을 변경하여 커뮤니티 커스텀 테마 설정이 가능합니다.
+- 관리자가 동적으로 테마 컬러, 배경 이미지, 워드마크, 로고 등을 변경하여 커뮤니티 커스텀 테마 설정이 가능합니다.
 - 자캐 커뮤니티에 적합하도록 탐색하기, 트렌드 등의 메뉴를 삭제하여 내비게이션 패널을 최적화하였습니다.
 
 ## Deployment
@@ -59,7 +59,7 @@
 - **Node.js** 22+
 - **FFmpeg** 5.1+
 
-위는 배포 당시의 사양으로, 마스토돈 v4.6.3을 기반으로 합니다.
+위는 배포 당시의 사양으로, 마스토돈 v4.6.4를 기반으로 합니다.
 
 This repository includes deployment configurations for **Docker and docker-compose**, as well as for other environments like Heroku and Scalingo. For Helm charts, reference the [mastodon/chart repository](https://github.com/mastodon/chart). A [**standalone** installation guide](https://docs.joinmastodon.org/admin/install/) is available in the main documentation.
 
