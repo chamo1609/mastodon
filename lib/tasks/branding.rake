@@ -37,7 +37,7 @@ namespace :branding do
 
   desc 'Generate favicons and app icons from SVG source files'
   task generate_app_icons: :environment do
-    favicon_source  = Rails.root.join('app', 'javascript', 'images', 'logo.svg')
+    favicon_source  = Rails.root.join('app', 'javascript', 'images', 'chamomile.svg')
     app_icon_source = Rails.root.join('app', 'javascript', 'images', 'app-icon.svg')
     output_dest     = Rails.root.join('app', 'javascript', 'icons')
 
