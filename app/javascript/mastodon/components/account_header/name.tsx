@@ -88,7 +88,8 @@ const AccountNameHelp: FC<{
     setOpen((prev) => !prev);
   }, []);
 
-  const handle = `@${username}@${domain}`;
+  // const handle = `@${username}@${domain}`;
+  const handle = `@${username}`;      // local domain 제거
 
   return (
     <>

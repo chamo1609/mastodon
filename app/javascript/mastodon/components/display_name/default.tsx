@@ -17,7 +17,8 @@ export function useAccountHandle(
     let acct = account.get('acct');
 
     if (!acct.includes('@') && localDomain) {
-      acct = `${acct}@${localDomain}`;
+      // acct = `${acct}@${localDomain}`;
+      acct = `${acct}`; // local domain 제거
     }
     return `@${acct}`;
   }, [account, localDomain]);
