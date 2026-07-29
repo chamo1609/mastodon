@@ -221,6 +221,14 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
   const showSearch = useBreakpoint('full') && !multiColumn;
   const account = useAccount(me);
 
+  // profile activation 판별 함수 추가
+  const isProfileActive = (
+    match: unknown,
+    { pathname }: { pathname: string },
+  ) => {
+    return pathname === `/@${account?.acct}`;
+  };
+
   let banner: React.ReactNode;
 
   if (transientSingleColumn) {
@@ -392,14 +400,11 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
             <li>
               <ColumnLink
                 transparent
-                to={`/@${account?.get('username') || ''}`}
+                to={`/@${account?.acct}`}
                 icon='profile'
                 iconComponent={AccountIcon}
-                activeIconComponent={
-                  location.pathname === `/@${account?.get('username') || ''}`
-                    ? AccountActiveIcon
-                    : AccountIcon
-                }
+                activeIconComponent={AccountActiveIcon}
+                isActive={isProfileActive}
                 text='프로필'
               />
             </li>

@@ -158,10 +158,10 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
             style={{ width: '36px', height: '36px', borderRadius: '4px' }} 
           />
           <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-            <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--primary-text-color)' }}>
+            <span style={{ fontWeight: 'bold', fontSize: '15px', color: 'var(--color-text-primary)' }}>
               {displayUsername}
             </span>
-            <span style={{ fontSize: '13px', color: 'var(--darker-text-color)' }}>
+            <span style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
               @{displayAcct}
             </span>
           </div>
@@ -169,7 +169,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({
           <Icon 
             id={isOpen ? 'unfold-less' : 'unfold-more'} 
             icon={isOpen ? UnfoldLessIcon : UnfoldMoreIcon} 
-            style={{ color: 'var(--darker-text-color)', marginLeft: '4px' }}
+            style={{ color: 'var(--color-text-secondary)', marginLeft: '4px' }}
           />
         </div>
       </Dropdown>
