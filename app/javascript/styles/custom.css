@@ -4844,7 +4844,6 @@ nav.navigation-panel .navigation-panel__logo a.column-link--logo img.chamomile-c
   display: block;
   content: var(--logo-image);
   
-  /* 강제로 확보된 부모 컨테이너의 너비를 100% 채움 */
   width: 100%;
   max-width: 100%;
   
@@ -4854,12 +4853,10 @@ nav.navigation-panel .navigation-panel__logo a.column-link--logo img.chamomile-c
   margin: 0 auto;
 }
 
-/* 원본 마스토돈 아이콘 숨김 처리 (워드마크 CSS의 방식과 동일하게 구성) */
 .mastodon-original-icon {
   display: none;
 }
 
-/* 커스텀 아이콘 이미지 주입 및 크기 제어 */
 button.column-header__title img.chamomile-custom-icon {
   display: block;
   content: var(--icon-image);
@@ -4869,4 +4866,56 @@ button.column-header__title img.chamomile-custom-icon {
   max-height: 24px;
   
   object-fit: contain;
+}
+
+.logo-container {
+  margin: 50px auto;
+
+  a {
+    .logo {
+      display: none;
+    }
+
+    &::before {
+      content: var(--logo-image);
+      display: block;
+      
+      width: 100%;
+      height: auto;
+      margin: 0 auto;
+    }
+  }
+}
+
+.sidebar > a .logo--icon {
+  content: var(--icon-image);
+  display: block;
+  object-fit: contain;
+  width: 100%;
+  height: auto;
+}
+
+.sidebar__toggle__logo {
+  a {
+    display: flex;
+    align-items: center;
+
+    .logo.logo--wordmark {
+      display: none;
+    }
+
+    &::before {
+      content: ""; /* 반드시 빈 문자열을 입력해야 요소가 생성됩니다. */
+      display: inline-block;
+      
+      /* background 속성을 사용하여 이미지를 제어합니다. */
+      background-image: var(--logo-image);
+      background-size: contain; /* 지정된 영역 안에서 원본 비율을 유지합니다. */
+      background-repeat: no-repeat;
+      background-position: left center;
+      
+      height: 25px;
+      width: 250px;
+    }
+  }
 }
