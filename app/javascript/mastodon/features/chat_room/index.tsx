@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { useParams, useHistory } from 'react-router-dom';
 import { List as ImmutableList } from 'immutable';
 
@@ -15,7 +15,7 @@ import { Poll } from 'mastodon/components/poll';
 
 import './chat_room.scss';
 
-import { setChatRoomState, clearChatRoomState } from 'mastodon/actions/compose';
+import { changeCompose, setChatRoomState, clearChatRoomState } from 'mastodon/actions/compose';
 
 interface RouteParams {
   id: string;
@@ -116,7 +116,7 @@ const ChatMessageBubble: React.FC<{
         </div>
       </div>
 
-      {/* 1. 날짜 구분선 (column-reverse 특성상 아래에 배치해야 화면 최상단에 뜹니다) */}
+      {/* 1. 날짜 구분선 */}
       {showDateDivider && (
         <div className="chat-date-divider">
           <span>{dateString}</span>
@@ -132,14 +132,18 @@ const ChatRoom: React.FC = () => {
   const params = useParams<RouteParams>();
   const conversationId = params.id;
 
+  const hasInitializedForm = useRef(false);
+
   useEffect(() => {
-    if (conversationId) {
+    if (!conversationId) return;
+    hasInitializedForm.current = false;
+
+    dispatch(expandConversationTimeline(conversationId));
+    const syncInterval = setInterval(() => {
       dispatch(expandConversationTimeline(conversationId));
-      const syncInterval = setInterval(() => {
-        dispatch(expandConversationTimeline(conversationId));
-      }, 3000);
-      return () => clearInterval(syncInterval);
-    }
+    }, 3000);
+    
+    return () => clearInterval(syncInterval);
   }, [dispatch, conversationId]);
 
   const currentConversation = useAppSelector((state: any) =>
@@ -158,13 +162,10 @@ const ChatRoom: React.FC = () => {
       return timeline.get('items')
         .map((id: string) => state.getIn(['statuses', id]))
         .filter((status: any) => {
-          // 1. 상태가 존재하지 않으면 제외 (방어 로직)
           if (!status) return false;
 
-          // 2. 접근 권한 필터링 로직
           const visibility = status.get('visibility');
           
-          // 다이렉트 메시지(DM)인 경우에만 권한을 엄격하게 검증합니다.
           if (visibility === 'direct') {
             const authorId = status.get('account');
             const mentions = status.get('mentions');
@@ -172,12 +173,10 @@ const ChatRoom: React.FC = () => {
             const isAuthor = authorId === me;
             const isMentioned = mentions && mentions.some((m: any) => m.get('id') === me);
 
-            // 내가 쓴 글도 아니고, 내가 멘션된 글도 아니라면 화면에서 완전히 숨깁니다.
             if (!isAuthor && !isMentioned) {
               return false;
             }
           }
-
           return true;
         })
         .sort((a: any, b: any) => a.get('id') > b.get('id') ? -1 : 1);
@@ -193,10 +192,19 @@ const ChatRoom: React.FC = () => {
     if (currentConversation) {
       currentConversation.get('accounts').forEach((id: string) => partnerIds.add(id));
     } else if (statuses && statuses.size > 0) {
-      statuses.forEach((status: any) => {
-        const accountId = status.get('account');
-        if (accountId && accountId !== me) partnerIds.add(accountId);
-      });
+      const rootStatus = statuses.last(); 
+      if (rootStatus) {
+        const authorId = rootStatus.get('account');
+        if (authorId && authorId !== me) partnerIds.add(authorId);
+        
+        const mentions = rootStatus.get('mentions');
+        if (mentions) {
+          mentions.forEach((m: any) => {
+            const mId = m.get('id');
+            if (mId && mId !== me) partnerIds.add(mId);
+          });
+        }
+      }
     }
 
     if (partnerIds.size > 0) {
@@ -207,23 +215,23 @@ const ChatRoom: React.FC = () => {
     return { partnerNames: pNames, mentionsStr: mStr };
   }, [currentConversation, statuses, accounts, me]);
 
-  // 1. 마운트/언마운트 시 CSS 클래스 및 채팅 상태 해제
   useEffect(() => {
     document.body.classList.add('in-chat-room');
     return () => {
       document.body.classList.remove('in-chat-room');
-      // 컴포넌트가 화면에서 사라지면 Redux 스토어의 채팅 상태도 제거합니다.
       dispatch(clearChatRoomState()); 
     };
   }, [dispatch]);
 
-  // 2. 상대방 정보나 최신 툿이 업데이트될 때마다 Redux 스토어 갱신
   useEffect(() => {
     const lastId = statuses && statuses.size > 0 ? statuses.first().get('id') : null;
     
-    // 조건이 충족될 때만 스토어에 세팅합니다.
     if (mentionsStr || lastId) {
       dispatch(setChatRoomState(`${mentionsStr} `, lastId));
+      if (mentionsStr && !hasInitializedForm.current) {
+        dispatch({ type: 'COMPOSE_VISIBILITY_CHANGE', value: 'direct' });
+        hasInitializedForm.current = true;
+      }
     }
   }, [mentionsStr, statuses, dispatch]);
 
@@ -271,7 +279,7 @@ const ChatRoom: React.FC = () => {
               const nextDateString = new Date(nextStatus.get('created_at')).toLocaleDateString('ko-KR', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' });
               if (dateString !== nextDateString) showDateDivider = true;
             } else {
-              showDateDivider = true; // 최초 메시지 상단 구분선 활성화
+              showDateDivider = true;
             }
 
             return (
@@ -290,7 +298,7 @@ const ChatRoom: React.FC = () => {
           })}
         </div>
 
-        <div className="chat-compose-area" style={{ flexShrink: 0, borderTop: '1px solid var(--color-border-primary)', backgroundColor: 'var(--color-bg-primary)' }}>
+        <div className="chat-compose-area" style={{ flexShrink: 0, borderTop: '1px solid var(--color-border-primary)'}}>
           <ComposeFormContainer />
         </div>
       </div>

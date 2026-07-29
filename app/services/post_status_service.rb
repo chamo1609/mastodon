@@ -87,6 +87,9 @@ class PostStatusService < BaseService
     safeguard_chamomile_admin_dm!
 
     process_mentions_service.call(@status)
+
+    # === 카모마일 에디션: 채팅방 제삼자 멘션 유입 차단 검증 ===
+    safeguard_chat_room_third_party_mention!(@status)
     
     safeguard_mentions!(@status)
     safeguard_private_mention_quote!(@status)
@@ -167,6 +170,33 @@ class PostStatusService < BaseService
     unless admin_mentioned
       # 시스템 실행을 붕괴시키는 대신, 정상적인 유효성 검사 에러를 반환하여 사용자의 UI에 메시지 출력
       raise Mastodon::ValidationError, 'DM 발송 시 총괄 계정을 반드시 태그해야 합니다.'
+    end
+  end
+  # === 여기까지 ===
+
+  # === 카모마일 에디션: 채팅방 제삼자 멘션 유입 차단 로직 ===
+  def safeguard_chat_room_third_party_mention!(status)
+    # 1. 다이렉트 메시지(DM)가 아니거나 답글(reply)이 아닌 경우 검증 생략
+    return unless status.visibility.to_sym == :direct
+    return unless status.in_reply_to_id.present?
+
+    # 2. 직전 부모 툿(Parent Status)을 조회
+    parent_status = Status.find_by(id: status.in_reply_to_id)
+    return unless parent_status
+
+    # 3. 허용된 참여자 ID 집합 구성
+    # (부모 툿의 작성자 + 부모 툿에 포함된 멘션 대상들 + 현재 작성자 본인)
+    allowed_account_ids = [parent_status.account_id]
+    allowed_account_ids += parent_status.mentions.pluck(:account_id)
+    allowed_account_ids << status.account_id
+    allowed_account_ids.uniq!
+
+    # 4. 현재 툿에 파싱된 멘션들 중 허용되지 않은 제삼자가 있는지 검사
+    status.mentions.each do |mention|
+      unless allowed_account_ids.include?(mention.account_id)
+        # 인가되지 않은 제삼자라면 데이터베이스에서 해당 멘션 객체를 즉시 파기
+        mention.destroy
+      end
     end
   end
   # === 여기까지 ===

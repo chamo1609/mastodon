@@ -224,17 +224,22 @@ export function submitCompose(successCallback) {
     let in_reply_to_id = getState().getIn(['compose', 'in_reply_to']);
     let visibility = getState().getIn(['compose', 'privacy']);
 
-    // Redux 스토어에서 채팅방 정보를 가져옵니다 (window 전역 변수 사용 안 함)
+    // Redux 스토어에서 채팅방 정보를 가져옵니다
     const chatRoomMentions = getState().getIn(['compose', 'chat_room_mentions']);
     let chatRoomLastStatusId = getState().getIn(['compose', 'chat_room_last_status_id']);
 
-    // --- 채팅방 전송 가로채기 및 타래 무결성 검증 ---
+    // --- 채팅방 전송 가로채기: 멘션 삽입 및 타래 무결성 검증 ---
     if (chatRoomMentions) {
-      if (!status.includes(chatRoomMentions.trim())) {
-        status = chatRoomMentions + status;
-      }
+      // 1. 공개 범위 강제
       visibility = 'direct';
       
+      // 2. 참여자 핸들을 전송할 텍스트의 맨 앞에 삽입
+      const trimmedMentions = chatRoomMentions.trim();
+      if (trimmedMentions.length > 0 && !status.includes(trimmedMentions)) {
+        status = `${trimmedMentions} ${status}`;
+      }
+      
+      // 3. 타래 무결성 검증 (맨 끝 툿에 이어붙이기)
       if (chatRoomLastStatusId) {
         in_reply_to_id = chatRoomLastStatusId;
 
