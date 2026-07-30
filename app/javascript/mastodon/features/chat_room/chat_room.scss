@@ -92,6 +92,16 @@ body.in-chat-room {
   &:hover {
     background-color: var(--color-bg-brand-base-hover);
   }
+
+  a, .h-card, .mention, .hashtag {
+    color: inherit !important;
+    
+    &:hover {
+      text-decoration: underline;
+      opacity: 0.8;
+    }
+  }
+
 }
 
 /* 상대방 말풍선 디자인 */

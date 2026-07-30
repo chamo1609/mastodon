@@ -69,8 +69,13 @@ const ChatMessageBubble: React.FC<{
         
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: isMe ? 'flex-end' : 'flex-start', maxWidth: '85%', minWidth: 0 }}>
           {!isMe && account && (
-            <div className="chat-nickname" onClick={handleAvatarClick} style={{ cursor: 'pointer', marginBottom: '4px', fontSize: '0.85rem', fontWeight: 'bold' }}>
-              {account.get('display_name') || account.get('username')}
+            <div className="chat-nickname" onClick={handleAvatarClick} style={{ cursor: 'pointer', marginBottom: '4px', fontSize: '0.85rem', display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+              <span style={{ fontWeight: 'bold' }}>
+                {account.get('display_name') || account.get('username')}
+              </span>
+              <span style={{ color: 'var(--color-text-muted)', fontWeight: 'normal', fontSize: '0.75rem' }}>
+                @{account.get('acct')}
+              </span>
             </div>
           )}
 
@@ -134,6 +139,9 @@ const ChatRoom: React.FC = () => {
 
   const hasInitializedForm = useRef(false);
 
+  const observerRef = useRef<HTMLDivElement>(null);
+  const [isLoadingOlder, setIsLoadingOlder] = useState(false);
+
   useEffect(() => {
     if (!conversationId) return;
     hasInitializedForm.current = false;
@@ -183,6 +191,36 @@ const ChatRoom: React.FC = () => {
     }
     return ImmutableList();
   });
+
+  const oldestId = statuses.size > 0 ? statuses.last().get('id') : null;
+  const hasMore = timeline ? timeline.get('next') !== null : true;
+
+  useEffect(() => {
+    setIsLoadingOlder(false);
+  }, [statuses.size, hasMore]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0]?.isIntersecting && oldestId && hasMore && !isLoadingOlder) {
+          setIsLoadingOlder(true);
+          dispatch(expandConversationTimeline(conversationId, { maxId: oldestId }));
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    const currentTarget = observerRef.current;
+    if (currentTarget) {
+      observer.observe(currentTarget);
+    }
+
+    return () => {
+      if (currentTarget) {
+        observer.unobserve(currentTarget);
+      }
+    };
+  }, [oldestId, hasMore, isLoadingOlder, conversationId, dispatch]);
 
   const { partnerNames, mentionsStr } = useMemo(() => {
     let pNames = '대화';
@@ -296,6 +334,7 @@ const ChatRoom: React.FC = () => {
               />
             );
           })}
+          <div ref={observerRef} style={{ height: '1px', flexShrink: 0 }} />
         </div>
 
         <div className="chat-compose-area" style={{ flexShrink: 0, borderTop: '1px solid var(--color-border-primary)'}}>
