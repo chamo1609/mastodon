@@ -81,9 +81,26 @@ const htmlToPlainText = html =>
 export const handlePush = (event) => {
   const { access_token, notification_id, preferred_locale, title, body, icon } = event.data.json();
 
-  // Placeholder until more information can be loaded
-  event.waitUntil(
-    fetchFromApi(`/api/v1/notifications/${notification_id}`, 'get', access_token).then(notification => {
+  const promiseChain = self.clients.matchAll({
+    type: 'window',
+    includeUncontrolled: true
+  }).then((windowClients) => {
+    let isAppActive = false;
+
+    for (let i = 0; i < windowClients.length; i++) {
+      const client = windowClients[i];
+      // W3C 표준: 창이 화면에 보이거나(visible), 사용자가 포커스하여 조작 중인(focused) 경우 활성화 상태로 간주
+      if (client.visibilityState === 'visible' || client.focused) {
+        isAppActive = true;
+        break;
+      }
+    }
+
+    if (isAppActive) {
+      return Promise.resolve();
+    }
+
+    return fetchFromApi(`/api/v1/notifications/${notification_id}`, 'get', access_token).then(notification => {
       const options = {};
 
       options.title     = formatMessage(`notification.${notification.type}`, preferred_locale, { name: notification.account.display_name.length > 0 ? notification.account.display_name : notification.account.username });
@@ -126,8 +143,10 @@ export const handlePush = (event) => {
         badge: '/badge.png',
         data: { access_token, preferred_locale, url: '/notifications' },
       });
-    }),
-  );
+    });
+  });
+
+  event.waitUntil(promiseChain);
 };
 
 const actionExpand = preferred_locale => ({
