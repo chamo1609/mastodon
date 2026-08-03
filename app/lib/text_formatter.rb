@@ -69,7 +69,7 @@ class TextFormatter
       require 'cgi'
       html = CGI.unescapeHTML(html)
 
-      # [추가됨] 1. 마크다운 코드 블록(```) 영역 추출 및 보호
+      # 1. 마크다운 코드 블록(```) 영역 추출 및 보호
       md_code_blocks = []
       html.gsub!(/^[ \t]*```.*?^[ \t]*```/m) do |match|
         md_code_blocks << match
@@ -82,7 +82,7 @@ class TextFormatter
       # 3. Setext 헤더 및 수평선(=, -) 문법 무력화
       html.gsub!(/^([ \t]*)([=-]+)\s*$/) { "#{$1}\\#{$2}" }
 
-      # [추가됨] 4. 보호했던 마크다운 코드 블록 복원
+      # 4. 보호했던 마크다운 코드 블록 복원
       md_code_blocks.each_with_index do |block, index|
         html.gsub!("___MD_CODE_BLOCK_#{index}___") { block }
       end

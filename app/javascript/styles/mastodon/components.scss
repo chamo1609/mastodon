@@ -11092,8 +11092,8 @@ noscript {
 
 .chamomile-dice {
   color: var(--color-text-brand);
-  font-weight: bold;
-  font-family: monospace;
+  // font-weight: bold;
+  font-family: $font-monospace, monospace;
   white-space: nowrap;
 }
 
@@ -11102,21 +11102,22 @@ noscript {
 .status__content__text {
   /* 1. 인라인 코드 */
   code {
-    font-family: 'Source Code Pro', monospace !important;
-    background-color: rgba(127, 127, 127, 0.2) !important;
-    padding: 0.2em 0.4em !important;
-    border-radius: 4px !important;
+    font-family: $font-monospace, monospace;
+    background-color: rgba(127, 127, 127, 0.3) !important;
+    padding: 0.2em 0.4em;
+    border-radius: 4px;
     font-size: 0.9em;
     color: var(--darker-text-color) !important;
   }
 
   /* 2. 코드 블록 (pre) */
   pre {
-    background-color: rgba(127, 127, 127, 0.2) !important;
-    padding: 16px !important;
-    border-radius: 8px !important;
-    overflow-x: auto !important;
-    margin: 10px 0 !important;
+    font-family: $font-monospace, monospace;
+    background-color: rgba(127, 127, 127, 0.3) !important;
+    padding: 16px;
+    border-radius: 8px;
+    overflow-x: auto;
+    margin: 10px 0;
     color: var(--darker-text-color) !important;
 
     /* pre 안의 code는 인라인 코드 스타일을 무시하고 배경을 투명하게 유지 */
@@ -11133,17 +11134,13 @@ noscript {
     margin: 8px 0 !important;
     padding: 0 0 0 16px !important;
     color: var(--darker-text-color) !important;
+    background: none; 
+    border: none !important;
     border-left: 4px solid var(--color-bg-brand-base) !important;
-    background: none !important; 
-    border-top: none !important;
-    border-right: none !important;
-    border-bottom: none !important;
 
     &::before,
     &::after {
-      content: none !important;
       display: none !important;
-      background-image: none !important;
     }
   }
 
@@ -11151,16 +11148,6 @@ noscript {
   ul, ol {
     margin: 8px 0 !important; 
     padding-left: 24px !important; /* 글머리 기호(bullet) 또는 숫자가 표시될 최소 공간 */
-  }
-
-  li {
-    margin-bottom: 4px !important;
-
-    /* 마크다운 파서가 li 내부에 p 태그를 강제로 생성할 때 발생하는 이중 공백 제거 */
-    p {
-      margin: 0 !important;
-      display: inline-block; 
-    }
   }
 
   /* 중첩 리스트 (리스트 안의 리스트) 여백 제거 */

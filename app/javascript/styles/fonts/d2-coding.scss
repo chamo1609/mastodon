@@ -1,0 +1,11 @@
+@font-face {
+  font-family: mastodon-font-monospace;
+  src:
+    local('D2 Coding Nerd'),
+    url('@/fonts/d2-coding/D2CodingLigatureNerdFont-Regular.woff2') format('woff2'),
+    url('@/fonts/d2-coding/D2CodingLigatureNerdFont-Regular.woff') format('woff'),
+    url('@/fonts/d2-coding/D2CodingLigatureNerdFont-Regular.ttf') format('truetype');
+  font-weight: 500;
+  font-display: swap;
+  font-style: normal;
+}
