@@ -432,7 +432,7 @@ private
       n = $1.to_i
       m = $2.to_i
 
-      if n > 0 && n <= 100 && m > 1 && m <= 1000
+      if n > 0 && n <= 10000 && m > 1 && m <= 10000
         total = n.times.sum { rand(1..m) }
         "\u200B[#{n}D#{m}=#{total}]\u200B"
       else
