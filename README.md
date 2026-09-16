@@ -2,7 +2,7 @@
 
 카모마일 에디션은 마스토돈을 기반으로 **자작 캐릭터(OC) 교류 커뮤니티 운영**을 위해 제작된 **오픈소스 에디션**입니다. 한국어 사용자의 독립적인 운영을 위한 에디션으로, 커뮤니티를 위한 여러 편의 기능을 추가하였습니다.
 
-이 프로젝트는 일부 개발 과정에서 AI 기반 도구를 활용하여 바이브 코딩으로 제작되었습니다.
+이 프로젝트는 일부 기능 추가와 개발 과정에서 AI 기반 보조 도구를 사용하였습니다.
 
 ## Navigation
 
@@ -18,10 +18,10 @@
 
 - 해시태그를 활용한 독립적인 게시판을 관리자 페이지에서 추가하고 제거할 수 있습니다.
 - 다른 계정의 api 토큰을 저장하여 로그아웃 및 로그인 과정 없이 툿을 작성하는 계정을 변환할 수 있습니다.
-- 관리자는 서버 설정 페이지에서 `[[nDm]]`의 형식으로 1과 m 사이의 자연수를 랜덤으로 n개 뽑아 합을 출력하는 주사위 기능을 추가할 수 있습니다.
+- 관리자는 서버 설정 페이지에서 `[[nDm]]`의 형식으로 1과 m 사이의 자연수를 랜덤으로 n개 뽑아 합을 출력하는 주사위 기능을 추가할 수 있습니다. (최대 `[[10000D10000]]`)
 - 게시글의 공개 범위와 관계 없이 답글이 툿 하단의 답글 개수에 포함됩니다.
 - 계정의 미디어 미리보기 타임라인에서 썸네일을 클릭 시, 해당 미디어가 첨부된 게시글로 이동합니다.
-- 북마크 폴더를 만들어 여러 개의 북마크를 관리할 수 있습니다.
+- 북마크 폴더를 만들어 다수의 북마크를 관리할 수 있습니다.
 
 ### 프라이버시
 
@@ -33,14 +33,20 @@
 
 - 화면에서 도메인 노출을 최소화했습니다.
 - 고정폭 폰트를 D2 Coding Nerd로 변경했습니다.
-- 관리자는 서버 설정 페이지에서 자신의 서버의 이용자들이 마크다운 기능을 사용할 수 있도록 허용하거나, 허용하지 않을 수 있습니다.
+- 관리자는 서버 설정 페이지에서 마크다운 기능의 사용을 설정할 수 있습니다.
 - 공개 범위가 direct인 타래를 하나의 페이지에 모아 채팅방 형식으로 확인할 수 있습니다.
 - 관리자가 동적으로 테마 컬러, 배경 이미지, 워드마크, 로고 등을 변경하여 커뮤니티 커스텀 테마 설정이 가능합니다.
 - 자캐 커뮤니티에 적합하도록 탐색하기, 트렌드 등의 메뉴를 삭제하여 내비게이션 패널을 최적화하였습니다.
 
 ## Deployment
 
-[마스토돈 홈페이지 설치 가이드](https://docs.joinmastodon.org/admin/install/)를 참고하여 설치할 수 있습니다. 링크를 https://github.com/mastodon/mastodon이 아닌 https://github.com/chamo1609/mastodon으로 변경하세요.
+[마스토돈 공식 설치 가이드](https://docs.joinmastodon.org/admin/install/)를 참고하여 설치를 진행합니다. 저장소 클론 시 본 에디션의 URL을 사용하세요.
+
+```bash
+git clone https://github.com/chamo1609/mastodon.git
+```
+
+## 시스템 요구사항 (Requirements)
 
 ### Tech stack
 
@@ -60,7 +66,7 @@
 - **Node.js** 22+
 - **FFmpeg** 5.1+
 
-위는 배포 당시의 사양으로, 마스토돈 v4.6.4를 기반으로 합니다.
+위는 배포 당시의 사양으로, 마스토돈 v4.x.x를 기반으로 합니다.
 
 This repository includes deployment configurations for **Docker and docker-compose**, as well as for other environments like Heroku and Scalingo. For Helm charts, reference the [mastodon/chart repository](https://github.com/mastodon/chart). A [**standalone** installation guide](https://docs.joinmastodon.org/admin/install/) is available in the main documentation.
 
@@ -72,7 +78,9 @@ This repository includes deployment configurations for **Docker and docker-compo
 
 ## LICENSE
 
-Copyright (c) 2016-2025 Eugen Rochko (+ [`mastodon authors`](AUTHORS.md))
+Mastodon: Copyright (c) 2016-2025 Eugen Rochko (+ [`mastodon authors`](AUTHORS.md)) (AGPLv3)
+Mastodon Bird-UI: Copyright (c) 2023 Roni Laukkarinen (MIT Licence)
+Chamomile Edition: Copyright (c) 2026 [카모](https://x.com/chamo16_cms) (AGPLv3)
 
 Licensed under GNU Affero General Public License as stated in the [LICENSE](LICENSE):
 
