@@ -4919,3 +4919,7 @@ button.column-header__title img.chamomile-custom-icon {
     }
   }
 }
+
+.announcements__mastodon {
+  display: none;
+}
