@@ -58,9 +58,8 @@ export const AccountNumberFields: FC<{ accountId: string }> = ({
 
       <NumberFieldsItem
         label={<FormattedMessage id='account.posts' defaultMessage='Posts' />}
-        hint={intl.formatNumber(account.statuses_count)}
       >
-        <ShortNumber value={account.statuses_count} />
+        {intl.formatNumber(account.statuses_count)}
       </NumberFieldsItem>
 
       <NumberFieldsItem
