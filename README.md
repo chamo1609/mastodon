@@ -32,12 +32,12 @@
 ### 디스플레이
 
 - 화면에서 도메인 노출을 최소화했습니다.
-- 고정폭 폰트를 D2 Coding Nerd로 변경했습니다.
+- 고정폭 폰트를 한국어 지원 D2 Coding Nerd로 변경했습니다.
 - 관리자는 서버 설정 페이지에서 마크다운 기능의 사용을 설정할 수 있습니다.
 - 공개 범위가 direct인 타래를 하나의 페이지에 모아 채팅방 형식으로 확인할 수 있습니다.
 - 관리자가 동적으로 테마 컬러, 배경 이미지, 워드마크, 로고 등을 변경하여 커뮤니티 커스텀 테마 설정이 가능합니다.
-- 자캐 커뮤니티에 적합하도록 탐색하기, 트렌드 등의 메뉴를 삭제하여 내비게이션 패널을 최적화하였습니다.
-- 커스텀 테마에서 코끼리 이미지 노출이 최소화되도록 수정했습니다.
+- 폐쇄형 자캐 커뮤니티에 적합하도록 탐색하기, 트렌드 등의 메뉴를 삭제하여 내비게이션 패널을 최적화하였습니다.
+- 커스텀 테마에서 마스토돈 마스코트 이미지 노출이 최소화되도록 수정했습니다.
 - 작성한 툿 개수를 축약형이 아닌 원본으로 표기하도록 하였습니다.
 
 ## Deployment
@@ -68,7 +68,7 @@ git clone https://github.com/chamo1609/mastodon.git
 - **Node.js** 22+
 - **FFmpeg** 5.1+
 
-위는 배포 당시의 사양으로, 마스토돈 v4.x.x를 기반으로 합니다.
+위는 배포 당시의 사양으로, 마스토돈 v4.6.8을 기반으로 합니다.
 
 This repository includes deployment configurations for **Docker and docker-compose**, as well as for other environments like Heroku and Scalingo. For Helm charts, reference the [mastodon/chart repository](https://github.com/mastodon/chart). A [**standalone** installation guide](https://docs.joinmastodon.org/admin/install/) is available in the main documentation.
 
@@ -81,7 +81,9 @@ This repository includes deployment configurations for **Docker and docker-compo
 ## LICENSE
 
 Mastodon: Copyright (c) 2016-2025 Eugen Rochko (+ [`mastodon authors`](AUTHORS.md)) (AGPLv3)
+
 Mastodon Bird-UI: Copyright (c) 2023 Roni Laukkarinen (MIT Licence)
+
 Chamomile Edition: Copyright (c) 2026 [카모](https://x.com/chamo16_cms) (AGPLv3)
 
 Licensed under GNU Affero General Public License as stated in the [LICENSE](LICENSE):
