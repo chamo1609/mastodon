@@ -11,7 +11,8 @@ on:
 
 jobs:
   build-images:
-    runs-on: ubuntu-24.04-arm
+    # 1. 수정: ARM 러너 대신 기본 AMD64 러너 사용
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       packages: write
@@ -19,6 +20,10 @@ jobs:
     steps:
       - name: Check out repository
         uses: actions/checkout@v4
+
+      # 2. 추가: 멀티 아키텍처 빌드를 위한 QEMU 환경 명시적 구성
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -47,7 +52,7 @@ jobs:
         with:
           context: .
           file: ./Dockerfile
-          platforms: linux/arm64, linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-main.outputs.tags }}
           labels: ${{ steps.meta-main.outputs.labels }}
@@ -71,7 +76,7 @@ jobs:
         with:
           context: .
           file: ./streaming/Dockerfile
-          platforms: linux/arm64, linux/amd64
+          platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta-streaming.outputs.tags }}
           labels: ${{ steps.meta-streaming.outputs.labels }}
