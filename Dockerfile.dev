@@ -1,21 +1,33 @@
-# 1. 개발 도구가 모두 포함된 풀 버전 루비 이미지 사용
-FROM ruby:3.3-bookworm
+# 1. Base Image (마스토돈 4.6.8 규격인 Ruby 4.0.5 사용)
+FROM ruby:4.0.5-bookworm
 
-# 2. 필수 패키지 및 libvips-dev 추가
+# 2. jemalloc을 통한 메모리 최적화 활성화 (CPU 100% 방지)
+ENV LD_PRELOAD="libjemalloc.so.2" \
+    MALLOC_CONF="narenas:2,background_thread:true,thp:never,dirty_decay_ms:1000,muzzy_decay_ms:0"
+
+# 3. 필수 패키지 설치 및 캐시/찌꺼기 제거 (이미지 경량화)
 RUN curl -sL https://deb.nodesource.com/setup_24.x | bash - \
     && apt-get update -qq \
-    && apt-get install -y \
-    nodejs build-essential libpq-dev libxml2-dev libxslt1-dev \
-    ffmpeg libicu-dev libidn11-dev libjemalloc-dev python3 \
-    shared-mime-info pkg-config libvips-dev \
+    && apt-get install -y --no-install-recommends \
+        nodejs build-essential libpq-dev libxml2-dev libxslt1-dev \
+        ffmpeg libicu-dev libidn11-dev libjemalloc2 python3 \
+        shared-mime-info pkg-config libvips-dev \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/* \
     && corepack enable
 
 WORKDIR /opt/mastodon
 
-# 3. 의존성 설치 파일만 먼저 복사
+# 4. 의존성 설치 파일만 먼저 복사 (레이어 캐싱)
 COPY Gemfile Gemfile.lock package.json yarn.lock ./
 
-# 4. 의존성 설치
+# 5. 의존성 병렬 설치로 빌드 속도 극대화
 RUN bundle config set --local without 'production' \
-    && bundle install \
+    && bundle install -j"$(nproc)" \
     && yarn install
+
+# 6. 나머지 소스 코드 복사
+COPY . .
+
+# 7. 마스토돈 개발 환경 필수 포트 명시
+EXPOSE 3000 4000 3036
