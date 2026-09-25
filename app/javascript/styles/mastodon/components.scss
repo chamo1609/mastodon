@@ -11108,7 +11108,7 @@ noscript {
   /* 1. 인라인 코드 */
   code {
     font-family: $font-monospace, monospace;
-    background-color: rgba(127, 127, 127, 0.3) !important;
+    background-color: var(--color-bg-compose-form) !important;
     padding: 0.2em 0.4em;
     border-radius: 4px;
     font-size: 0.9em;
@@ -11118,7 +11118,7 @@ noscript {
   /* 2. 코드 블록 (pre) */
   pre {
     font-family: $font-monospace, monospace;
-    background-color: rgba(127, 127, 127, 0.3) !important;
+    background-color: var(--color-bg-compose-form) !important;
     padding: 16px;
     border-radius: 8px;
     overflow-x: auto;

@@ -11,17 +11,31 @@ module BrandingHelper
   end
 
   def _logo_as_symbol_wordmark
-    tag.svg(viewBox: '0 0 261 66', class: 'logo logo--wordmark') do
-      tag.title('Mastodon') +
-        tag.use(href: '#logo-symbol-wordmark')
+    if custom_theme?
+      tag.img(alt: 'Chamomile', class: 'logo logo--wordmark chamomile-custom-logo')
+    else
+      tag.svg(viewBox: '0 0 261 66', class: 'logo logo--wordmark') do
+        tag.title('Mastodon') +
+          tag.use(href: '#logo-symbol-wordmark')
+      end
     end
   end
 
   def _logo_as_symbol_icon
-    tag.svg(tag.use(href: '#logo-symbol-icon'), viewBox: '0 0 79 79', class: 'logo logo--icon')
+    if custom_theme?
+      tag.img(alt: 'Chamomile', class: 'logo logo--icon chamomile-custom-icon')
+    else
+      tag.svg(tag.use(href: '#logo-symbol-icon'), viewBox: '0 0 79 79', class: 'logo logo--icon')
+    end
   end
 
   def render_logo
     image_tag(frontend_asset_path('images/logo.svg'), alt: 'Mastodon', class: 'logo logo--icon')
+  end
+
+  private
+
+  def custom_theme?
+    current_theme == 'custom-theme'
   end
 end
