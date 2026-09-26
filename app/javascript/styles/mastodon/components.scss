@@ -11136,9 +11136,9 @@ noscript {
 
   /* 3. 인용구 (blockquote) */
   blockquote {
-    margin: 8px 0 !important;
-    padding: 0 0 0 16px !important;
-    color: var(--darker-text-color) !important;
+    margin: 0 !important;
+    padding: 0 0 0 12px !important;
+    color: var(--text-color) !important;
     background: none; 
     border: none !important;
     border-left: 4px solid var(--color-bg-brand-base) !important;
@@ -11149,20 +11149,83 @@ noscript {
     }
   }
 
-  /* 4. 리스트 (ul, ol) */
-  ul, ol {
-    margin: 8px 0 !important; 
-    padding-left: 24px !important; /* 글머리 기호(bullet) 또는 숫자가 표시될 최소 공간 */
+  /* 1. 인용구 내부 텍스트(p)가 만드는 상하 여백 제거 */
+  blockquote p {
+    margin: 0 !important;
+    padding: 0 !important;
   }
 
-  /* 중첩 리스트 (리스트 안의 리스트) 여백 제거 */
+  /* 2. 인용구 바로 위쪽에 있는 일반 문단(p)의 하단 여백 제거 */
+  p:has(+ blockquote) {
+    margin-bottom: 0 !important;
+  }
+
+  /* 4. 리스트 (ul, ol) */
+  ul, ol {
+    margin: 0 !important;
+    padding-left: 0 !important; 
+    list-style-type: none !important; 
+  }
+
+  /* 4-1. 순서 없는 리스트 (ul) - 항상 타이트한 여백 유지 */
+  ul > li {
+    position: relative;
+    padding-left: 18px !important;
+  }
+
+  ul > li::before {
+    content: '•';
+    position: absolute;
+    left: 4px;
+  }
+
+  /* 4-2. 순서 있는 리스트 (ol) - 기본 세팅 */
+  ol {
+    counter-reset: chamomile-counter; 
+  }
+
+  ol > li {
+    position: relative;
+    counter-increment: chamomile-counter;
+    /* [기본: 최대 1자리 수 (1~9)] ul과 동일한 타이트한 여백 */
+    padding-left: 18px !important; 
+  }
+
+  ol > li::before {
+    content: counter(chamomile-counter) ".";
+    position: absolute;
+    left: 0;
+    text-align: right; 
+    font-variant-numeric: tabular-nums; 
+    /* [기본: 최대 1자리 수] 숫자가 들어갈 좁은 박스 */
+    width: 16px; 
+  }
+
+  /* [동적 변경 1: 최대 2자리 수 (10~99)] 
+     리스트 안에 10번째 항목(li)이 하나라도 존재하면 ol 안의 모든 여백을 늘림 */
+  ol:has(li:nth-child(10)) > li {
+    padding-left: 32px !important;
+  }
+  ol:has(li:nth-child(10)) > li::before {
+    width: 28px;
+  }
+
+  /* [동적 변경 2: 최대 3자리 수 (100~999)] 
+     리스트 안에 100번째 항목(li)이 하나라도 존재하면 여백을 더 넓힘 */
+  ol:has(li:nth-child(100)) > li {
+    padding-left: 46px !important;
+  }
+  ol:has(li:nth-child(100)) > li::before {
+    width: 42px;
+  }
+
+  /* 4-3. 중첩 리스트 및 문단 밀착 유지 */
   li > ul,
   li > ol {
     margin-top: 4px !important;
     margin-bottom: 0 !important;
   }
 
-  /* 문단(p) 바로 다음에 리스트(ul, ol)가 이어질 경우, 해당 문단의 하단 여백 제거 */
   p:has(+ ul),
   p:has(+ ol) {
     margin-bottom: 0 !important;

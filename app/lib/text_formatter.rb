@@ -1,11 +1,29 @@
 # frozen_string_literal: true
 
-require 'commonmarker'
-
 class TextFormatter
   include ActionView::Helpers::TextHelper
   include ERB::Util
   include RoutingHelper
+
+  # [추가 1] 헤더와 구분선을 텍스트로 치환하는 커스텀 마크다운 렌더러
+  class ChamomileMarkdownRenderer < Redcarpet::Render::HTML
+    def header(text, header_level)
+      "<p>#{'#' * header_level} #{text}</p>"
+    end
+
+    def hrule
+      "<p>---</p>"
+    end
+  end
+
+  # [추가 2] 툿 본문 전용 Sanitize 규칙 (안전한 마크다운 태그만 허용)
+  CHAMOMILE_TOOT_CONFIG = Sanitize::Config.merge(Sanitize::Config::MASTODON_STRICT,
+    elements: Sanitize::Config::MASTODON_STRICT[:elements] + %w(b i strong em del blockquote code pre ul ol li),
+    attributes: Sanitize::Config::MASTODON_STRICT[:attributes].merge(
+      'code' => ['class'],
+      'pre'  => ['class']
+    )
+  ).freeze
 
   URL_PREFIX_REGEX = %r{\A(https?://(www\.)?|xmpp:)}
 
@@ -13,16 +31,10 @@ class TextFormatter
 
   DEFAULT_OPTIONS = {
     multiline: true,
-  }.freeze  
+  }.freeze
 
   attr_reader :text, :options
 
-  # @param [String] text
-  # @param [Hash] options
-  # @option options [Boolean] :multiline
-  # @option options [Boolean] :with_domains
-  # @option options [Boolean] :with_rel_me
-  # @option options [Array<Account>] :preloaded_accounts
   def initialize(text, options = {})
     @text    = text
     @options = DEFAULT_OPTIONS.merge(options)
@@ -32,29 +44,14 @@ class TextFormatter
     @entities ||= Extractor.extract_entities_with_indices(text, extract_url_without_protocol: false)
   end
 
-  # def to_s
-  #   return add_quote_fallback('').html_safe if text.blank? # rubocop:disable Rails/OutputSafety
-
-  #   html = rewrite do |entity|
-  #     if entity[:url]
-  #       link_to_url(entity)
-  #     elsif entity[:hashtag]
-  #       link_to_hashtag(entity)
-  #     elsif entity[:screen_name]
-  #       link_to_mention(entity)
-  #     end
-  #   end
-
-  #   html = simple_format(html, {}, sanitize: false).delete("\n") if multiline?
-  #   html = add_quote_fallback(html) if options[:quoted_status].present?
-
-  #   html.html_safe # rubocop:disable Rails/OutputSafety
-  # end
-
   def to_s
     return add_quote_fallback('').html_safe if text.blank? # rubocop:disable Rails/OutputSafety
 
-    html = rewrite do |entity|
+    # 관리자 설정이 켜져있고, 단일 줄이 아닌 일반 툿(multiline)일 때만 마크다운 활성화
+    markdown_enabled = Setting.chamomile_markdown_enabled && multiline?
+
+    # 마크다운을 사용할 때는 Redcarpet 파서가 읽을 수 있도록 원시 텍스트(escape: false)를 넘깁니다.
+    html = rewrite(escape: !markdown_enabled) do |entity|
       if entity[:url]
         link_to_url(entity)
       elsif entity[:hashtag]
@@ -64,53 +61,30 @@ class TextFormatter
       end
     end
 
-    # --- 카모마일 에디션: 관리자 설정에 따른 마크다운 처리 ---
-    if Setting.chamomile_markdown_enabled
-      require 'cgi'
-      html = CGI.unescapeHTML(html)
+    if markdown_enabled
+      html.gsub!(/^(\s*)#/, '\1&#35;')
+      html.gsub!(/^(\s*)-{3,}/, '\1&#45;--')
+      html.gsub!(/^([ \t]*>.*)\r?\n([ \t]*[^>\r\n])/, "\\1\n\n\\2")
+      html.gsub!(/^(?![ \t]*(?:[-*+]|\d+\.)\s+)(.+)\r?\n([ \t]*(?:[-*+]|\d+\.)\s+)/, "\\1\n\n\\2")
+      html.gsub!(/^([ \t]*(?:[-*+]|\d+\.)\s+.*)\r?\n(?![ \t]*(?:[-*+]|\d+\.)\s+)(.+)/, "\\1\n\n\\2")
 
-      # 1. 마크다운 코드 블록(```) 영역 추출 및 보호
-      md_code_blocks = []
-      html.gsub!(/^[ \t]*```.*?^[ \t]*```/m) do |match|
-        md_code_blocks << match
-        "___MD_CODE_BLOCK_#{md_code_blocks.size - 1}___"
-      end
-
-      # 2. ATX 헤더(#) 문법 무력화
-      html.gsub!(/^([#]{1,6})\s+/) { |match| "\\#{match}" }
-
-      # 3. Setext 헤더 및 수평선(=, -) 문법 무력화
-      html.gsub!(/^([ \t]*)([=-]+)\s*$/) { "#{$1}\\#{$2}" }
-
-      # 4. 보호했던 마크다운 코드 블록 복원
-      md_code_blocks.each_with_index do |block, index|
-        html.gsub!("___MD_CODE_BLOCK_#{index}___") { block }
-      end
-
-      # 5. 마크다운 파싱 및 HTML 변환
-      html = Commonmarker.to_html(html, options: {
-        render: { unsafe: true, hardbreaks: true },
-        extension: { strikethrough: true, tagfilter: true, autolink: false }
-      })
+      renderer = ChamomileMarkdownRenderer.new(escape_html: false, hard_wrap: true)
+      extensions = {
+        autolink: false,
+        fenced_code_blocks: true,
+        strikethrough: true,
+        no_intra_emphasis: true
+      }
       
-      # 6. HTML <pre> 블록 보호 및 개행 제거 (기존 로직)
-      pre_blocks = []
+      html = Redcarpet::Markdown.new(renderer, extensions).render(html)
       
-      html.gsub!(/<pre.*?>.*?<\/pre>/m) do |match|
-        pre_blocks << match
-        "___PRE_BLOCK_#{pre_blocks.size - 1}___"
-      end
-
-      html.gsub!(/[\r\n]+/, '')
-
-      pre_blocks.each_with_index do |block, index|
-        html.gsub!("___PRE_BLOCK_#{index}___") { block }
-      end
-    else
-      # 마크다운이 꺼져 있을 때의 기본 로직
-      html = simple_format(html, {}, sanitize: false).delete("\n") if multiline?
+      # 렌더링된 결과를 커스텀 규칙으로 살균하여 XSS 방어
+      html = Sanitize.fragment(html, CHAMOMILE_TOOT_CONFIG)
+      html = html.delete("\n")
+    elsif multiline?
+      # 마크다운 비활성화 시 기존 마스토돈 파이프라인
+      html = simple_format(html, {}, sanitize: false).delete("\n")
     end
-    # ------------------------------------------------
 
     html = add_quote_fallback(html) if options[:quoted_status].present?
 
@@ -130,7 +104,7 @@ class TextFormatter
       suffix      = url[(prefix.length + 30)..]
       cutoff      = url[prefix.length..].length > 30
 
-      if suffix && suffix.length == 1 # revert truncation to account for ellipsis
+      if suffix && suffix.length == 1
         display_url += suffix
         suffix = nil
         cutoff = false
@@ -157,7 +131,8 @@ class TextFormatter
 
   private
 
-  def rewrite
+  # [수정] 마크다운 변환 시 HTML 이스케이프 여부를 제어할 수 있도록 옵션 추가
+  def rewrite(escape: true)
     entities.sort_by! do |entity|
       entity[:indices].first
     end
@@ -166,12 +141,14 @@ class TextFormatter
 
     last_index = entities.reduce(0) do |index, entity|
       indices = entity[:indices]
-      result << h(text[index...indices.first])
+      chunk = text[index...indices.first]
+      result << (escape ? h(chunk) : chunk)
       result << yield(entity)
       indices.last
     end
 
-    result << h(text[last_index..])
+    chunk = text[last_index..]
+    result << (escape ? h(chunk) : chunk)
 
     result
   end

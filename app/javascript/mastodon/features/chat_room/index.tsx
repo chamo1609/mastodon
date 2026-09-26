@@ -102,7 +102,7 @@ const ChatMessageBubble: React.FC<{
 
               {isRevealed && (
                 <>
-                  {cleanHtml.length > 0 && <div className="status__content" dangerouslySetInnerHTML={{ __html: cleanHtml }} />}
+                  {cleanHtml.length > 0 && <div className="status__content status__content__text" dangerouslySetInnerHTML={{ __html: cleanHtml }} />}
                   {mediaAttachments && mediaAttachments.size > 0 && (
                     <div style={{ borderRadius: '8px', overflow: 'hidden' }}>
                       <MediaGallery media={mediaAttachments} height={200} />
