@@ -12,18 +12,17 @@ class TextFormatter
     end
 
     def hrule
-      "<p>---</p>"
+      '<p>---</p>'
     end
   end
 
   # [추가 2] 툿 본문 전용 Sanitize 규칙 (안전한 마크다운 태그만 허용)
   CHAMOMILE_TOOT_CONFIG = Sanitize::Config.merge(Sanitize::Config::MASTODON_STRICT,
-    elements: Sanitize::Config::MASTODON_STRICT[:elements] + %w(b i strong em del blockquote code pre ul ol li),
-    attributes: Sanitize::Config::MASTODON_STRICT[:attributes].merge(
-      'code' => ['class'],
-      'pre'  => ['class']
-    )
-  ).freeze
+                                                 elements: Sanitize::Config::MASTODON_STRICT[:elements] + %w(b i strong em del blockquote code pre ul ol li),
+                                                 attributes: Sanitize::Config::MASTODON_STRICT[:attributes].merge(
+                                                   'code' => ['class'],
+                                                   'pre' => ['class']
+                                                 )).freeze
 
   URL_PREFIX_REGEX = %r{\A(https?://(www\.)?|xmpp:)}
 
@@ -73,11 +72,11 @@ class TextFormatter
         autolink: false,
         fenced_code_blocks: true,
         strikethrough: true,
-        no_intra_emphasis: true
+        no_intra_emphasis: true,
       }
-      
+
       html = Redcarpet::Markdown.new(renderer, extensions).render(html)
-      
+
       # 렌더링된 결과를 커스텀 규칙으로 살균하여 XSS 방어
       html = Sanitize.fragment(html, CHAMOMILE_TOOT_CONFIG)
       html = html.delete("\n")
@@ -131,7 +130,6 @@ class TextFormatter
 
   private
 
-  # [수정] 마크다운 변환 시 HTML 이스케이프 여부를 제어할 수 있도록 옵션 추가
   def rewrite(escape: true)
     entities.sort_by! do |entity|
       entity[:indices].first
