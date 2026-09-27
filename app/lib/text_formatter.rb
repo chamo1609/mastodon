@@ -67,6 +67,10 @@ class TextFormatter
       html.gsub!(/^(?![ \t]*(?:[-*+]|\d+\.)\s+)(.+)\r?\n([ \t]*(?:[-*+]|\d+\.)\s+)/, "\\1\n\n\\2")
       html.gsub!(/^([ \t]*(?:[-*+]|\d+\.)\s+.*)\r?\n(?![ \t]*(?:[-*+]|\d+\.)\s+)(.+)/, "\\1\n\n\\2")
 
+      # [추가 1] 코드 블록 밀착 방지: 코드 블록 전체를 찾아 앞뒤로 빈 줄(\n\n)을 강제로 삽입합니다.
+      # 이로써 인라인 코드나 일반 텍스트 바로 아래에 백틱을 써도 완벽하게 독립된 블록으로 인식됩니다.
+      html.gsub!(/(^[ \t]*```[^\n]*\n.*?\n[ \t]*```)/m, "\n\n\\1\n\n")
+
       renderer = ChamomileMarkdownRenderer.new(escape_html: false, hard_wrap: true)
       extensions = {
         autolink: false,
@@ -79,7 +83,13 @@ class TextFormatter
 
       # 렌더링된 결과를 커스텀 규칙으로 살균하여 XSS 방어
       html = Sanitize.fragment(html, CHAMOMILE_TOOT_CONFIG)
-      html = html.delete("\n")
+
+      # [추가 2] 무조건 delete("\n")을 하던 것을 변경합니다.
+      # <pre> 태그(코드 블록) 내부의 줄바꿈은 그대로 보존하고, 그 외 영역의 줄바꿈만 삭제하여 레이아웃 깨짐을 방지합니다.
+      html = html.split(%r{(<pre\b.*?>.*?</pre>)}m).map do |chunk|
+        chunk.start_with?('<pre') ? chunk : chunk.delete("\n")
+      end.join
+
     elsif multiline?
       # 마크다운 비활성화 시 기존 마스토돈 파이프라인
       html = simple_format(html, {}, sanitize: false).delete("\n")
