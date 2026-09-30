@@ -16,7 +16,7 @@
   --color-light-shade: #00000005;
   --color-focusable-toot: rgba(0, 0, 0, 3.5%);
   --color-light-text: var(--admin-text-dark);
-  --color-mud: color-mix(in srgb, var(--admin-panel-light) 70%, transparent);
+  --color-mud: color-mix(in srgb, var(--admin-panel-dark) 70%, transparent);
   --color-black-coral: color-mix(
     in srgb,
     var(--admin-brand-dark) 40%,
