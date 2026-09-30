@@ -1,75 +1,161 @@
-// Mastodon Bird UI - Light theme tokens as a reusable mixin
-// Used by both _variables-light.scss (forced-light entries) and the new
-// auto bundle (mastodon-bird-ui-auto.scss) which scopes the tokens to
-// [data-color-scheme="light"] and prefers-color-scheme: light.
-// stylelint-disable plugin/no-unused-custom-properties
-
 @mixin tokens {
   --color-bg: var(--admin-bg-light);
   --color-fg: var(--admin-text-light);
-  --color-border: color-mix(in srgb, var(--admin-text-light) 12%, var(--admin-bg-light) 88%);
-  --color-dim: color-mix(color-mix(in srgb, var(--admin-brand-light) 30%, var(--admin-text-light)) 80%, var(--admin-bg-light) 40%);
+  --color-border: color-mix(
+    in srgb,
+    var(--admin-text-light) 12%,
+    var(--admin-bg-light) 88%
+  );
+  --color-dim: color-mix(
+    color-mix(in srgb, var(--admin-brand-light) 30%, var(--admin-text-light))
+      80%,
+    var(--admin-bg-light) 40%
+  );
   --color-green: #17bf63;
   --color-red: #e0245e;
   --color-red-75: #e0245ebf;
   --color-light-shade: #00000005;
   --color-focusable-toot: rgba(0, 0, 0, 3.5%);
   --color-light-text: var(--admin-text-light);
-  --color-mud: color-mix(in srgb, var(--admin-brand-light) 8%, var(--admin-bg-light));
-  --color-black-coral: color-mix(in srgb, var(--admin-brand-light) 40%, var(--admin-text-light) 60%);
-  --color-topaz: color-mix(in srgb, var(--admin-brand-light) 45%, var(--admin-text-light) 55%);
-  --color-light-purple: color-mix(in srgb, var(--admin-brand-light) 50%, var(--admin-text-light) 50%);
-  --color-dark-electric-blue: color-mix(in srgb, var(--admin-brand-light) 45%, var(--admin-text-light) 55%);
-  --color-profile-button-hover: color-mix(in srgb, var(--admin-text-light) 10%, transparent);
-  --color-column-link-hover: color-mix(in srgb, var(--admin-text-light) 10%, transparent);
+  --color-mud: color-mix(in srgb, var(--admin-panel-light) 70%, transparent);
+  --color-black-coral: color-mix(
+    in srgb,
+    var(--admin-brand-light) 40%,
+    var(--admin-text-light) 60%
+  );
+  --color-topaz: color-mix(
+    in srgb,
+    var(--admin-brand-light) 45%,
+    var(--admin-text-light) 55%
+  );
+  --color-light-purple: color-mix(
+    in srgb,
+    var(--admin-brand-light) 50%,
+    var(--admin-text-light) 50%
+  );
+  --color-dark-electric-blue: color-mix(
+    in srgb,
+    var(--admin-brand-light) 45%,
+    var(--admin-text-light) 55%
+  );
+  --color-profile-button-hover: color-mix(
+    in srgb,
+    var(--admin-text-light) 10%,
+    transparent
+  );
+  --color-column-link-hover: color-mix(
+    in srgb,
+    var(--admin-text-light) 10%,
+    transparent
+  );
   --color-modal-overlay: var(--admin-bg-light);
-  --color-dark: color-mix(in srgb, var(--admin-text-light) 5%, var(--admin-bg-light) 95%);
-  --color-thread-line: color-mix(in srgb, var(--admin-text-light) 12%, var(--admin-bg-light) 88%);
+  --color-dark: color-mix(
+    in srgb,
+    var(--admin-text-light) 5%,
+    var(--admin-bg-light) 95%
+  );
+  --color-thread-line: color-mix(
+    in srgb,
+    var(--admin-text-light) 12%,
+    var(--admin-bg-light) 88%
+  );
   --color-bg-75: color-mix(in srgb, var(--admin-bg-light) 75%, transparent);
   --color-bg-90: color-mix(in srgb, var(--admin-bg-light) 90%, transparent);
-  
   --color-accent: var(--color-accent-dark);
   --color-ghost-button-text: var(--color-accent-dark);
-  
-  --color-bg-compose-form: color-mix(in srgb, var(--admin-panel-light) 70%, transparent);
-  --color-bg-compose-form-focus: color-mix(in srgb, var(--admin-panel-light) 80%, transparent);
-  
+  --color-bg-compose-form: color-mix(
+    in srgb,
+    var(--admin-panel-light) 70%,
+    transparent
+  );
+  --color-bg-compose-form-focus: color-mix(
+    in srgb,
+    var(--admin-panel-light) 80%,
+    transparent
+  );
   --color-hashtag: var(--color-accent-dark);
   --color-mention: var(--color-accent-dark);
 
   // Mastodon v4.6.0-alpha.3-2026-01-24 semantic tokens
   // Mapped from Bird UI light theme variables above
   --color-bg-primary: var(--admin-bg-light);
-  --color-bg-secondary: color-mix(in srgb, var(--admin-text-light) 5%, var(--admin-bg-light) 95%);
-  --color-bg-tertiary: color-mix(in srgb, var(--admin-text-light) 8%, var(--admin-bg-light) 92%);
+  --color-bg-secondary: color-mix(
+    in srgb,
+    var(--admin-text-light) 5%,
+    var(--admin-bg-light) 95%
+  );
+  --color-bg-tertiary: color-mix(
+    in srgb,
+    var(--admin-text-light) 8%,
+    var(--admin-bg-light) 92%
+  );
   --color-bg-elevated: var(--admin-panel-light);
   --color-bg-overlay: var(--admin-bg-light);
   --color-bg-inverted: var(--admin-bg-dark);
   --color-text-inverted: var(--admin-text-dark);
   --color-text-primary: var(--admin-text-light);
-  --color-text-secondary: color-mix(in srgb, var(--admin-text-light) 60%, var(--admin-bg-light) 40%);
-  --color-text-tertiary: color-mix(in srgb, var(--admin-text-light) 50%, var(--admin-bg-light) 50%);
+  --color-text-secondary: color-mix(
+    in srgb,
+    var(--admin-text-light) 60%,
+    var(--admin-bg-light) 40%
+  );
+  --color-text-tertiary: color-mix(
+    in srgb,
+    var(--admin-text-light) 50%,
+    var(--admin-bg-light) 50%
+  );
   --color-text-brand: var(--admin-brand-light);
-  --color-border-primary: color-mix(in srgb, var(--admin-text-light) 12%, var(--admin-bg-light) 88%);
-
+  --color-border-primary: color-mix(
+    in srgb,
+    var(--admin-text-light) 12%,
+    var(--admin-bg-light) 88%
+  );
   --color-brand-mastodon: var(--admin-brand-light);
-  --color-brand-mastodon-links: color-mix(in srgb, var(--admin-brand-light) 80%, white);
+  --color-brand-mastodon-links: color-mix(
+    in srgb,
+    var(--admin-brand-light) 80%,
+    white
+  );
   --color-brand-mastodon-bg: var(--admin-bg-light);
-  --color-brand-mastodon-dim: color-mix(in srgb, var(--admin-brand-light) 30%, var(--admin-bg-light));
-  --color-brand-mastodon-mud: color-mix(in srgb, var(--admin-bg-light) 50%, transparent);
+  --color-brand-mastodon-dim: color-mix(
+    in srgb,
+    var(--admin-brand-light) 30%,
+    var(--admin-bg-light)
+  );
+  --color-brand-mastodon-mud: color-mix(
+    in srgb,
+    var(--admin-bg-light) 50%,
+    transparent
+  );
   --color-brand-mastodon-dark: var(--admin-bg-light);
-  --color-brand-mastodon-threaded-line: color-mix(in srgb, var(--admin-bg-light) 80%, var(--admin-text-light) 20%);
+  --color-brand-mastodon-threaded-line: color-mix(
+    in srgb,
+    var(--admin-bg-light) 80%,
+    var(--admin-text-light) 20%
+  );
   --color-brand-mastodon-text-light: var(--admin-text-on-brand-light);
-
   --color-bg-brand-base: var(--admin-brand-light);
+  --color-bg-brand-base-hover: color-mix(
+    in srgb,
+    var(--admin-brand-light) 85%,
+    black 15%
+  );
+  --color-bg-brand-soft: color-mix(
+    in srgb,
+    var(--admin-brand-light) 15%,
+    transparent
+  );
+  --color-bg-brand-softer: color-mix(
+    in srgb,
+    var(--admin-brand-light) 10%,
+    transparent
+  );
+  --color-bg-brand-softest: color-mix(
+    in srgb,
+    var(--admin-brand-light) 5%,
+    transparent
+  );
   --color-text-on-brand-base: var(--admin-text-on-brand-light);
-  
-  --color-bg-brand-base-hover: color-mix(in srgb, var(--admin-brand-light) 85%, black 15%);
-  --color-bg-brand-soft: color-mix(in srgb, var(--admin-brand-light) 15%, transparent);
-  --color-bg-brand-softer: color-mix(in srgb, var(--admin-brand-light) 10%, transparent);
-  --color-bg-brand-softest: color-mix(in srgb, var(--admin-brand-light) 5%, transparent);
-  --color-text-on-brand-base: var(--admin-text-on-brand-light);
-
   --bg-image: var(--custom-background-light);
   --logo-image: var(--custom-logo-light);
   --icon-image: var(--custom-icon-light);
