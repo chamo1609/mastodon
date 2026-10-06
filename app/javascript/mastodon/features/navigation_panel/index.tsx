@@ -361,7 +361,7 @@ export const NavigationPanel: React.FC<{ multiColumn?: boolean }> = ({
 
             <li role='separator' />
 
-            {/* <ListPanel /> */}
+            <ListPanel />
 
             <li>
               <ColumnLink

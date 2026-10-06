@@ -1516,9 +1516,9 @@ body.layout-single-column, body.layout-multiple-columns {
   order: 2 !important;
 }
 
-.layout-single-column .navigation-panel__menu > li.navigation-panel__list-panel, .layout-multiple-columns .navigation-panel__menu > li.navigation-panel__list-panel {
-  order: 90;
-}
+/* .layout-single-column .navigation-panel__menu > li.navigation-panel__list-panel, .layout-multiple-columns .navigation-panel__menu > li.navigation-panel__list-panel {
+  order: 3;
+} */
 
 .layout-single-column .navigation-panel__menu > li:has(button.column-link), .layout-multiple-columns .navigation-panel__menu > li:has(button.column-link) {
   order: 99;
